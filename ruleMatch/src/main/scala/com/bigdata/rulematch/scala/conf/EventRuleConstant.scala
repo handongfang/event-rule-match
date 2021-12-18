@@ -18,4 +18,9 @@ object EventRuleConstant {
 
   //Kafka相关的配置参数
   val KAFKA_BOOTSTRAP_SERVERS = "kafka.bootstrap.servers"
+
+  //ClickHouse相关配置
+  val CLICKHOUSE_TABLE_NAME = "default.event_detail"
+  val CLICKHOUSE_DRIVER_NAME = "ru.yandex.clickhouse.ClickHouseDriver"
+  val CLICKHOUSE_URL = "jdbc:clickhouse://82.156.210.70:8123/default"
 }
