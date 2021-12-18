@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration  monitorInterval="60">
+    <Properties>
+        <Property name="PropertyKey">PropertyValue</Property>
+    </Properties>
+    <Appenders>
+        <Console name="STDOUT">
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n</Pattern>
+            </PatternLayout>
+        </Console>
+        <!-- append的作用是如果写文件之前,已经存在这个文件了,是继续追加(true), 还是清空后再写 -->
+        <!--<RollingFile name="RollingFileAppender"
+                     fileName="${sys:log.file}" filePattern="${sys:log.file}.%i"
+                     append="false">-->
+        <RollingFile name="RollingFileAppender" fileName="rule-match"
+                     filePattern="rule-match.%i" append="false">
+        <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="10MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <!-- name属性为项目包名或者类名 -->
+        <Root level="WARN">
+            <!--<AppenderRef ref="RollingFileAppender"/>-->
+            <AppenderRef ref="STDOUT"/>
+        </Root>
+        <!-- 只有logger 本身单独配置了Appender时,才需要设置additivity属性-->
+        <Logger name="com.bigdata" level="INFO">
+            <!-- 如果需要单独配置Appender,就这样写,否则就使用父logger的Appender-->
+            <!--<AppenderRef ref="RollingFileAppender"/>-->
+        </Logger>
+        <Logger name="org.apache.flink" level="INFO"/>
+        <Logger name="org.jboss.netty.channel.DefaultChannelPipeline" level="OFF"/>
+    </Loggers>
+</Configuration>

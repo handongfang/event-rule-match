@@ -22,7 +22,7 @@ object EventRuleMatchV1 {
   /**
    * 消费的kafka主题名称
    */
-  private val consumerTopics = ""
+  private val consumerTopics = "user-event"
 
   private val isLocal = true
 
@@ -41,7 +41,7 @@ object EventRuleMatchV1 {
     val kafkaSource: KafkaSource[String] = KafkaSourceFactory.getKafkaSource(consumerTopics)
 
     /**
-     * 从kafka中接口事件明细数据，每产生一个事件，都会发送到kafka
+     * 从kafka中接收事件明细数据，每产生一个事件，都会发送到kafka
      */
     val eventDS: DataStream[String] = env.fromSource(kafkaSource,
       WatermarkStrategy.noWatermarks(),
