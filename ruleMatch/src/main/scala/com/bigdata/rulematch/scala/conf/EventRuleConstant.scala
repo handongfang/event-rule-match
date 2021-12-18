@@ -13,6 +13,9 @@ import org.apache.commons.configuration2.builder.fluent.Configurations
 object EventRuleConstant {
   private val configs = new Configurations()
 
+  //加载application.properties配置文件
   val config = configs.properties("application.properties")
 
+  //Kafka相关的配置参数
+  val KAFKA_BOOTSTRAP_SERVERS = "kafka.bootstrap.servers"
 }

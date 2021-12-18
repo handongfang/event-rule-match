@@ -1,5 +1,7 @@
 package com.bigdata.rulematch.scala.job
 
+import com.bigdata.rulematch.scala.bean.EventLogBean
+import com.bigdata.rulematch.scala.function.EventJSONToBeanFlatMapFunction
 import com.bigdata.rulematch.scala.source.KafkaSourceFactory
 import org.apache.flink.api.common.eventtime.WatermarkStrategy
 import org.apache.flink.api.java.utils.ParameterTool
@@ -48,7 +50,10 @@ object EventRuleMatchV1 {
       "KafkaSource")
       .uid("rule-match-20211218001")
 
-    eventDS.print()
+    //将JSON转换为 EventLogBean
+    val eventLogBeanDS: DataStream[EventLogBean] = eventDS.flatMap(new EventJSONToBeanFlatMapFunction)
+
+    eventLogBeanDS.print()
 
     env.execute(this.getClass.getSimpleName.stripSuffix("$"))
   }

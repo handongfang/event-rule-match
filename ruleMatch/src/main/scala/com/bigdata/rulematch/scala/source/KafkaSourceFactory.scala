@@ -27,7 +27,7 @@ object KafkaSourceFactory {
 
     val groupId = "g-rule-match"
 
-    properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, config.getString("bootstrap.servers"))
+    properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, config.getString(EventRuleConstant.KAFKA_BOOTSTRAP_SERVERS))
     properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, groupId)
     properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest")
     //关闭kafka自动提交偏移量，其实如果开启了checkpoint,kafka就不会再自动提交偏移量了，这个参数可以不设置
@@ -40,7 +40,7 @@ object KafkaSourceFactory {
 
     val kafkaSource: KafkaSource[String] = KafkaSource.builder[String]()
       .setProperties(properties)
-      .setBootstrapServers(config.getString("bootstrap.servers"))
+      .setBootstrapServers(config.getString(EventRuleConstant.KAFKA_BOOTSTRAP_SERVERS))
       .setTopics(topics)
       .setGroupId(groupId)
       .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.LATEST))
