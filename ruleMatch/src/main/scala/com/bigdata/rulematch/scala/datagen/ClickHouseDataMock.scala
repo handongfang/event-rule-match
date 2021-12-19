@@ -92,6 +92,10 @@ object ClickHouseDataMock {
      * 返回值:
      * 1，如果模式匹配。
      * 0，如果模式不匹配。
+     *
+     * 注意：
+     * Aggregate function sequenceMatch requires at least 3 arguments
+     * sequenceMatch至少需要3个参数，所以is_match1中多给了一个参数
      */
     val querySqlStr =
       s"""

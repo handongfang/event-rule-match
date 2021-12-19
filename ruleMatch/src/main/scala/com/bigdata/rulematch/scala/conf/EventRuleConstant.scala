@@ -23,4 +23,20 @@ object EventRuleConstant {
   val CLICKHOUSE_TABLE_NAME = "default.event_detail"
   val CLICKHOUSE_DRIVER_NAME = "ru.yandex.clickhouse.ClickHouseDriver"
   val CLICKHOUSE_URL = "jdbc:clickhouse://82.156.210.70:8123/default"
+
+  //用户事件Id类型
+  //浏览页面事件
+  val EVENT_PAGE_VIEW = "pageView"
+  //浏览商品事件
+  val EVENT_PRODUCT_VIEW = "productView"
+  //添加购物车事件
+  val EVENT_ADD_CART = "addCart"
+  //收藏事件
+  val EVENT_COLLECT = "collect"
+  //商品分享事件
+  val EVENT_SHARE = "share"
+  //提交订单事件
+  val EVENT_ORDER_SUBMIT = "orderSubmit"
+  //订单支付事件
+  val EVENT_ORDER_PAY = "orderPay"
 }
