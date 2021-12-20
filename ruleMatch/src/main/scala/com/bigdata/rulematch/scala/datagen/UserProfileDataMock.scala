@@ -1,6 +1,7 @@
 package com.bigdata.rulematch.scala.datagen
 
 import com.bigdata.rulematch.scala.conf.EventRuleConstant
+import com.bigdata.rulematch.scala.utils.ConnectionUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.{HBaseConfiguration, TableName}
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory, Put}
@@ -17,13 +18,8 @@ import org.apache.hadoop.hbase.util.Bytes
 object UserProfileDataMock {
   def main(args: Array[String]): Unit = {
 
-    val hbaseConf: Configuration = HBaseConfiguration.create()
-
-    val config = EventRuleConstant.config
-
-    hbaseConf.set(EventRuleConstant.HBASE_ZOOKEEPER_QUORU, config.getString(EventRuleConstant.HBASE_ZOOKEEPER_QUORU))
-
-    val connection: Connection = ConnectionFactory.createConnection(hbaseConf)
+    //获取HBase连接对象
+    val connection: Connection = ConnectionUtils.getHBaseConnection()
 
     val table = connection.getTable(TableName.valueOf(EventRuleConstant.HBASE_USER_PROFILE_TABLE_NAME))
 
@@ -36,8 +32,7 @@ object UserProfileDataMock {
     val family = Bytes.toBytes("f")
 
     put.addColumn(family, Bytes.toBytes("sex"), Bytes.toBytes("male"))
-    put.addColumn(family, Bytes.toBytes("ageStart"), Bytes.toBytes("18"))
-    put.addColumn(family, Bytes.toBytes("ageEnd"), Bytes.toBytes("30"))
+    put.addColumn(family, Bytes.toBytes("age"), Bytes.toBytes("18"))
 
     //插入数据
     table.put(put)

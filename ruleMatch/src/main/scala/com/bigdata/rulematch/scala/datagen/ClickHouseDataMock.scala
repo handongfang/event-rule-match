@@ -5,6 +5,7 @@ import java.sql.{Connection, DriverManager, PreparedStatement, ResultSet}
 import com.alibaba.fastjson.JSON
 import com.bigdata.rulematch.scala.bean.EventLogBean
 import com.bigdata.rulematch.scala.conf.EventRuleConstant
+import com.bigdata.rulematch.scala.utils.ConnectionUtils
 import org.apache.commons.dbutils.DbUtils
 import org.apache.commons.lang3.StringUtils
 
@@ -36,10 +37,7 @@ object ClickHouseDataMock {
    */
   def eventLogDataToClickHouse(eventLogBean: EventLogBean) = {
 
-
-    Class.forName(EventRuleConstant.CLICKHOUSE_DRIVER_NAME)
-
-    val conn: Connection = DriverManager.getConnection(EventRuleConstant.CLICKHOUSE_URL)
+    val conn: Connection = ConnectionUtils.getClickHouseConnection()
 
     val sqlStr =
       s"""
@@ -134,9 +132,7 @@ object ClickHouseDataMock {
 
     println(querySqlStr)
 
-    Class.forName(EventRuleConstant.CLICKHOUSE_DRIVER_NAME)
-
-    val conn: Connection = DriverManager.getConnection(EventRuleConstant.CLICKHOUSE_URL)
+    val conn: Connection = ConnectionUtils.getClickHouseConnection()
 
     val pstmt: PreparedStatement = conn.prepareStatement(querySqlStr)
 
