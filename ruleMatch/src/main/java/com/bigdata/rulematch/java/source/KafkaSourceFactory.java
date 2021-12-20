@@ -5,12 +5,14 @@ import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.KafkaSourceOptions;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.apache.kafka.common.serialization.StringDeserializer;
+
 
 import java.io.IOException;
 import java.util.Properties;
@@ -38,27 +40,13 @@ public class KafkaSourceFactory  {
         //关闭kafka自动提交偏移量，其实如果开启了checkpoint,kafka就不会再自动提交偏移量了，这个参数可以不设置
         properties.setProperty(KafkaSourceOptions.COMMIT_OFFSETS_ON_CHECKPOINT.key(), "true");
 
+        DeserializationSchema simpleStringSchema = new SimpleStringSchema();
         KafkaSource kafkaSource = KafkaSource.builder().setProperties(properties)
                 .setBootstrapServers( EventRuleConstant.config.getString(EventRuleConstant.KAFKA_BOOTSTRAP_SERVERS))
                 .setTopics(topics)
                 .setGroupId(groupId)
                 .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.LATEST))
-                .setValueOnlyDeserializer(new DeserializationSchema() {
-                    @Override
-                    public TypeInformation getProducedType() {
-                        return null;
-                    }
-
-                    @Override
-                    public Object deserialize(byte[] bytes) throws IOException {
-                        return null;
-                    }
-
-                    @Override
-                    public boolean isEndOfStream(Object o) {
-                        return false;
-                    }
-                })
+                .setValueOnlyDeserializer(simpleStringSchema)
                 .build();
 
        return kafkaSource;

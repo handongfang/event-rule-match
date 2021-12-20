@@ -62,7 +62,7 @@ object EventRuleMatchV1 {
 
     //eventLogBeanDS.print()
 
-    //因为规则匹配是针对每个用户，单独继续匹配的
+    //因为规则匹配是针对每个用户，kyBY后单独继续匹配的
     val keyedDS: KeyedStream[EventLogBean, String] = eventLogBeanDS.keyBy(_.userId)
 
     val matchRuleDS = keyedDS.process(new RuleMatchKeyedProcessFunctionV1)
