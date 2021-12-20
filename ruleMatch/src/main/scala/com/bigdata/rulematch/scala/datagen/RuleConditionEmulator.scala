@@ -58,10 +58,35 @@ object RuleConditionEmulator {
 
     val actionCountConditionList: List[EventCondition] = List[EventCondition](actionCountCondition1, actionCountCondition2)
 
-    //行为序列类条件
-    val actionSeqConditionList: List[EventCondition] = null
+    //行为次序类条件列表 2021-12-18 00:00:00 至今, 用户依次浏览A页面->把B商品(商品Id为B)加入购物车->B商品提交订单
 
-    //行为次序类条件列表
+    val actionSeqConditionStartTimeStr = "2021-12-18 00:00:00"
+    val actionSeqConditionEndTimeStr = "9999-12-31 00:00:00"
+
+    val actionSeqConditionStartTime = DateUtils.parseDate(actionSeqConditionStartTimeStr, "yyyy-MM-dd HH:mm:ss").getTime
+    val actionSeqConditionEndTime = DateUtils.parseDate(actionSeqConditionEndTimeStr, "yyyy-MM-dd HH:mm:ss").getTime
+
+    val actionSeqCondition1Map: Map[String, String] = Map[String, String](
+      "pageId" -> "A"
+    )
+    val actionSeqCondition1: EventCondition = EventCondition(EventRuleConstant.EVENT_PAGE_VIEW,
+      actionSeqCondition1Map, actionSeqConditionStartTime, actionSeqConditionEndTime)
+
+    val actionSeqCondition2Map: Map[String, String] = Map[String, String](
+      "productId" -> "B"
+    )
+    val actionSeqCondition2: EventCondition = EventCondition(EventRuleConstant.EVENT_ADD_CART,
+      actionSeqCondition2Map, actionSeqConditionStartTime, actionSeqConditionEndTime)
+
+    val actionSeqCondition3Map: Map[String, String] = Map[String, String](
+      "productId" -> "B"
+    )
+    val actionSeqCondition3: EventCondition = EventCondition(EventRuleConstant.EVENT_ORDER_SUBMIT,
+      actionSeqCondition3Map, actionSeqConditionStartTime, actionSeqConditionEndTime)
+
+    val actionSeqConditionList: List[EventCondition] = List[EventCondition](
+      actionSeqCondition1, actionSeqCondition2, actionSeqCondition3
+    )
 
     RuleCondition(ruleId, keyByFields, triggerCondition, userProfileConditions,
       actionCountConditionList, actionSeqConditionList)
