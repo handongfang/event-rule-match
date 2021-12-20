@@ -3,6 +3,7 @@ package com.bigdata.rulematch.scala.datagen
 import java.util.Properties
 
 import com.alibaba.fastjson.JSON
+import com.alibaba.fastjson.serializer.SerializerFeature
 import com.bigdata.rulematch.java.conf.EventRuleConstant
 import com.bigdata.rulematch.scala.bean.EventLogBean
 import com.bigdata.rulematch.scala.job.EventRuleMatchV1
@@ -60,7 +61,7 @@ object EventLogAutoGen {
 
     val kafkaProducer = new KafkaProducer[String, String](properties)
 
-    val message = JSON.toJSONString(eventLog)
+    val message = JSON.toJSONString(eventLog, SerializerFeature.WRITE_MAP_NULL_FEATURES)
 
     println(s"发送到kafka的数据: ${message}")
 

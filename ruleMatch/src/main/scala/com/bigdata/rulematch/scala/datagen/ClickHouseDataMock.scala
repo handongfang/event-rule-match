@@ -61,8 +61,11 @@ object ClickHouseDataMock {
 
     pstmt.execute()
 
+    println(s"插入 click house : ${jsonStr}")
+
     DbUtils.closeQuietly(conn, pstmt, null)
 
+    println("[click house],  关闭连接")
   }
 
   /**

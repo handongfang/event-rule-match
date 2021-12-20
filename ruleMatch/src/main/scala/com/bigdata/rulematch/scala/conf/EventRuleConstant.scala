@@ -24,6 +24,12 @@ object EventRuleConstant {
   val CLICKHOUSE_DRIVER_NAME = "ru.yandex.clickhouse.ClickHouseDriver"
   val CLICKHOUSE_URL = "jdbc:clickhouse://82.156.210.70:8123/default"
 
+  //HBase相关的配置
+  //hbase中用户画像表名称
+  val HBASE_USER_PROFILE_TABLE_NAME = "user-profile"
+  //连接hbase的ZK地址
+  val HBASE_ZOOKEEPER_QUORU = "hbase.zookeeper.quorum"
+
   //用户事件Id类型
   //浏览页面事件
   val EVENT_PAGE_VIEW = "pageView"
