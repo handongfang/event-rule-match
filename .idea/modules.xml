@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/event-rule-match.iml" filepath="$PROJECT_DIR$/event-rule-match.iml" />
-      <module fileurl="file://$PROJECT_DIR$/ruleMatch/ruleMatch.iml" filepath="$PROJECT_DIR$/ruleMatch/ruleMatch.iml" />
-    </modules>
-  </component>
-</project>
