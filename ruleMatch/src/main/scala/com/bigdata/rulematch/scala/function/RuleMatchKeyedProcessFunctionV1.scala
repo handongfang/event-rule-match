@@ -4,12 +4,16 @@ import com.bigdata.rulematch.scala.bean.{EventLogBean, RuleMatchResult}
 import com.bigdata.rulematch.scala.conf.EventRuleConstant
 import org.apache.commons.lang3.StringUtils
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction
-import org.apache.flink.streaming.api.scala.DataStream
 import org.apache.flink.util.Collector
 
 /**
  *
  * 静态规则匹配KeyedProcessFunction
+ *
+ * 触发条件: 浏览A页面
+ * * 用户画像条件： 性别：女; 年龄: >18岁
+ * * 行为次数类条件：2021-12-10 00:00:00 至今, A商品加入购物车次数超过3次,A商品收藏次数大于5次
+ * * 行为次序类条件: 用户依次浏览A页面->把B商品(商品Id为pd001)加入购物车->B商品提交订单
  *
  * @author Administrator
  * @version 1.0
@@ -37,8 +41,10 @@ class RuleMatchKeyedProcessFunctionV1 extends KeyedProcessFunction[String, Event
 
       if(isMatch){
 
-        val matchResult = RuleMatchResult("rule-001", "规则1")
+        //创建规则匹配结果对象
+        val matchResult = RuleMatchResult("rule-001", "规则1", event.timeStamp, System.currentTimeMillis())
 
+        //将匹配结果输出
         out.collect(matchResult)
       }
 
