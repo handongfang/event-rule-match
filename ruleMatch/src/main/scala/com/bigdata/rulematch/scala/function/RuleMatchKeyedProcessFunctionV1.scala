@@ -4,7 +4,6 @@ import com.bigdata.rulematch.scala.bean.{EventLogBean, RuleMatchResult}
 import com.bigdata.rulematch.scala.conf.EventRuleConstant
 import org.apache.commons.lang3.StringUtils
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction
-import org.apache.flink.streaming.api.scala.DataStream
 import org.apache.flink.util.Collector
 
 /**
