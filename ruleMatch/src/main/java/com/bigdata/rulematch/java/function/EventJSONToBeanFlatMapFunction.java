@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author 小韩韩
+ * @author HanDongfang
  * @create 2021-12-19  22:02
  */
 public class EventJSONToBeanFlatMapFunction extends RichFlatMapFunction<String, EventLogBean> {

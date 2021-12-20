@@ -1,7 +1,7 @@
 package com.bigdata.rulematch.java.bean;
 
 /**
- * @author 小韩韩
+ * @author HanDongfang
  * @create 2021-12-19  22:31
  */
 public class RuleMatchResult {

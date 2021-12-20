@@ -10,7 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.sql.*;
 
 /**
- * @author 小韩韩
+ * @author HanDongfang
  * @create 2021-12-19  22:54
  */
 public class ClickHouseDataMock {

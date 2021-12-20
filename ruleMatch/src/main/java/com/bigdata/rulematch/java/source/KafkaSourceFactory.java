@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 /**
- * @author 小韩韩
+ * @author HanDongfang
  * @create 2021-12-19  17:09
  */
 public class KafkaSourceFactory  {

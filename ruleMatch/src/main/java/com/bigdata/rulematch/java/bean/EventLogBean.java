@@ -5,7 +5,7 @@ import scala.beans.BeanProperty;
 import java.util.Map;
 
 /**
- * @author 小韩韩
+ * @author HanDongfang
  * @create 2021-12-19  22:03
  */
 public class EventLogBean {
