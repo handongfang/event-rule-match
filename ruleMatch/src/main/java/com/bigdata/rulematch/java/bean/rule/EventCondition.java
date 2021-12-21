@@ -67,28 +67,28 @@ public class EventCondition {
     /**
      * 规则条件中的一个事件的id
      */
-    String eventId;
+    private String eventId;
     /**
      * 规则条件中的一个事件的属性约束
      */
-    Map<String, String> eventProps = new HashMap<String, String>();
+    private Map<String, String> eventProps = new HashMap<String, String>();
     /**
      * 规则条件中的一个事件要求的发生时间段起始
      */
-    Long timeRangeStart = 0L;
+    private Long timeRangeStart = 0L;
     /**
      * 规则条件中的一个事件要求的发生时间段终点
      */
-    Long timeRangeEnd = 0L;
+    private Long timeRangeEnd = 0L;
     /**
      * 规则条件中的一个事件要求的发生次数最小值
      */
-    int minLimit = 0;
+    private int minLimit = 0;
 
     /**
      * 规则条件中的一个事件要求的发生次数最大值
      */
-    int maxLimit = 0;
+    private  int maxLimit = 0;
 
 
     public String getEventId() {

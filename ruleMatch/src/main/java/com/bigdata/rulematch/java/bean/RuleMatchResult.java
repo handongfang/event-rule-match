@@ -9,12 +9,12 @@ public class RuleMatchResult {
     /**
      * 匹配上的规则Id
      */
-    String ruleId;
+    private String ruleId;
 
     /**
      * 匹配上的规则名称
      */
-    String ruleName;
+    private String ruleName;
 
     public RuleMatchResult(String ruleId, String ruleName) {
         this.ruleId = ruleId;
