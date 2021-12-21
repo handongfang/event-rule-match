@@ -20,36 +20,26 @@ class ClickHouseQueryServiceImpl {
     this.ckConn = ckConn
   }
 
+  /**
+   * 查询行为次数类
+   * @param keyByField
+   * @param keyByFieldValue
+   * @param eventCondition
+   * @return
+   */
   def queryActionCountCondition(keyByField: String ,
                                 keyByFieldValue: String ,
                                 eventCondition: EventCondition) = {
 
     logger.debug("CK收到一个行为次数类查询条件,keyByField:{}, keyByFieldValue: {}, 规则条件:{}", keyByField, keyByFieldValue, eventCondition)
 
-    val propertiesConditionBuilder = new StringBuilder
+    val querySqlStr = eventCondition.actionCountQuerySql
 
-    val eventProps = eventCondition.eventProps
-
-    if(eventProps != null && eventProps.size > 0){
-      eventProps.foreach{ case (k, v) => {
-        propertiesConditionBuilder.append(s" AND ${k} = '${v}'")
-      }}
-    }
-
-    val querySqlStr =
-      s"""
-         |SELECT count(1) AS cnt
-         | FROM ${EventRuleConstant.CLICKHOUSE_TABLE_NAME}
-         |WHERE ${keyByField} = ? ${propertiesConditionBuilder.toString()}
-         | AND eventId = ${eventCondition.eventId} AND timeStamp BETWEEN ? AND ?
-         |""".stripMargin
+    logger.debug(s"构造的clickhouse查询行为次数的sql语句: ${querySqlStr}")
 
     val pstmt: PreparedStatement = ckConn.prepareStatement(querySqlStr)
 
     pstmt.setString(1, keyByFieldValue)
-    pstmt.setLong(2, eventCondition.timeRangeStart)
-    pstmt.setLong(3, eventCondition.timeRangeEnd)
-
 
     val rs: ResultSet = pstmt.executeQuery()
 

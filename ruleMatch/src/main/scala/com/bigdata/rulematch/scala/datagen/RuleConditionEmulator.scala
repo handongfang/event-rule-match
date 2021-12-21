@@ -50,14 +50,36 @@ object RuleConditionEmulator {
     val actionCountConditionStartTime = DateUtils.parseDate(actionCountConditionStartTimeStr, "yyyy-MM-dd HH:mm:ss").getTime
     val actionCountConditionEndTime = DateUtils.parseDate(actionCountConditionEndTimeStr, "yyyy-MM-dd HH:mm:ss").getTime
 
+    var actionCountQuerySql =
+      s"""
+         |SELECT count(1) AS cnt
+         | FROM ${EventRuleConstant.CLICKHOUSE_TABLE_NAME}
+         |WHERE ${keyByFields} = ? AND properties['productId'] = 'A'
+         | AND eventId = '${EventRuleConstant.EVENT_ADD_CART}'
+         | AND timeStamp BETWEEN ${actionCountConditionStartTime} AND ${actionCountConditionEndTime}
+         |""".stripMargin
+
     val actionCountCondition1: EventCondition = EventCondition(EventRuleConstant.EVENT_ADD_CART,
-      actionCountCondition1Map, actionCountConditionStartTime, actionCountConditionEndTime, 3, Int.MaxValue)
+      actionCountCondition1Map, actionCountConditionStartTime, actionCountConditionEndTime, 3,
+      Int.MaxValue, actionCountQuerySql)
+
 
     val actionCountCondition2Map: Map[String, String] = Map[String, String](
       "productId" -> "A"
     )
+
+    actionCountQuerySql =
+      s"""
+         |SELECT count(1) AS cnt
+         | FROM ${EventRuleConstant.CLICKHOUSE_TABLE_NAME}
+         |WHERE ${keyByFields} = ? AND properties['productId'] = 'A'
+         | AND eventId = '${EventRuleConstant.EVENT_COLLECT}'
+         | AND timeStamp BETWEEN ${actionCountConditionStartTime} AND ${actionCountConditionEndTime}
+         |""".stripMargin
+
     val actionCountCondition2: EventCondition = EventCondition(EventRuleConstant.EVENT_COLLECT,
-      actionCountCondition2Map, actionCountConditionStartTime, actionCountConditionEndTime, 5, Int.MaxValue)
+      actionCountCondition2Map, actionCountConditionStartTime, actionCountConditionEndTime, 5,
+      Int.MaxValue, actionCountQuerySql)
 
     val actionCountConditionList: List[EventCondition] = List[EventCondition](actionCountCondition1, actionCountCondition2)
 
