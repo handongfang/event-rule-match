@@ -30,7 +30,7 @@ public class ClickHouseDataMock {
      *
      * @param eventLogBean
      */
-    public void eventLogDataToClickHouse(EventLogBean eventLogBean) throws ClassNotFoundException, SQLException {
+    public static void eventLogDataToClickHouse(EventLogBean eventLogBean) throws ClassNotFoundException, SQLException {
 
         Class.forName(EventRuleConstant.CLICKHOUSE_DRIVER_NAME);
 

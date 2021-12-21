@@ -21,14 +21,14 @@ import org.slf4j.LoggerFactory;
  * @version 1.0
  * @date 2021-12-18 17:55
  */
-public class JavaEventRuleMatchV1 {
+public class EventRuleMatchV1 {
     private Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
     private static String checkpointDataUri = "";
     /**
      * 消费的kafka主题名称
      */
-    private static String consumerTopics = "user-event";
+    public static String consumerTopics = "user-event";
 
     private static boolean isLocal = true;
 
