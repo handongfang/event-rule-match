@@ -81,7 +81,7 @@ class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction[String, Event
         logger.debug(s"开始匹配用户画像类规则条件: ${userProfileConditions}")
 
         //从hbase中查询，并判断是否匹配
-        isMatch = hBaseQueryService.userProfileConditionIsMatch(event.eventId, userProfileConditions)
+        isMatch = hBaseQueryService.userProfileConditionIsMatch(event.userId, userProfileConditions)
 
       } else {
         logger.debug("没有设置用户画像规则类条件")

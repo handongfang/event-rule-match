@@ -10,6 +10,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.sql.*;
 
 /**
+ * ClickHouse数据模拟与测试
+ *
  * @author HanDongfang
  * @create 2021-12-19  22:54
  */
@@ -30,7 +32,7 @@ public class ClickHouseDataMock {
      *
      * @param eventLogBean
      */
-    public void eventLogDataToClickHouse(EventLogBean eventLogBean) throws ClassNotFoundException, SQLException {
+    public static void eventLogDataToClickHouse(EventLogBean eventLogBean) throws ClassNotFoundException, SQLException {
 
         Class.forName(EventRuleConstant.CLICKHOUSE_DRIVER_NAME);
 
@@ -88,34 +90,39 @@ public class ClickHouseDataMock {
          * Aggregate function sequenceMatch requires at least 3 arguments
          * sequenceMatch至少需要3个参数，所以is_match1中多给了一个参数
          */
-        String querySqlStr = "SELECT\n" +
-                "                    userId,\n" +
-                "                    sequenceMatch('.*(?1).*(?2).*(?3)')(\n" +
-                "                    toDateTime(`timeStamp`),\n" +
-                "                    eventId = 'adShow' AND properties['adId']='10',\n" +
-                "                    eventId = 'addCart' AND properties['pageId']='720',\n" +
-                "                    eventId = 'collect' AND properties['pageId']='263'\n" +
-                "                   ) AS is_match3,\n" +
-                "                  sequenceMatch('.*(?1).*(?2)')(\n" +
-                "                    toDateTime(`timeStamp`),\n" +
-                "                    eventId = 'adShow' AND properties['adId']='10',\n" +
-                "                    eventId = 'addCart' AND properties['pageId']='720'\n" +
-                "                  ) AS is_match2,\n" +
-                "                 sequenceMatch('.*(?1).*')(\n" +
-                "                    toDateTime(`timeStamp`),\n" +
-                "                    eventId = 'adShow' AND properties['adId']='10',\n" +
-                "                    eventId = 'addCart' AND properties['pageId']='720'\n" +
-                "                  ) AS is_match1\n" +
-                "                FROM ${EventRuleConstant.CLICKHOUSE_TABLE_NAME}\n" +
-                "                WHERE userId='u202112180001' AND  `timeStamp` > 1639756800000\n" +
-                "                  AND (\n" +
-                "                        (eventId='adShow' AND properties['adId']='10')\n" +
-                "                        OR\n" +
-                "                        (eventId = 'addCart' AND properties['pageId']='720')\n" +
-                "                        OR\n" +
-                "                        (eventId = 'collect' AND properties['pageId']='263')\n" +
-                "                    )\n" +
-                "                GROUP BY userId";
+        StringBuilder ss = new StringBuilder();
+        ss.append("SELECT\n" +
+                "    userId,\n" +
+                "    sequenceMatch('.*(?1).*(?2).*(?3)')(\n" +
+                "    toDateTime(`timeStamp`),\n" +
+                "    eventId = 'adShow' AND properties['adId']='10',\n" +
+                "    eventId = 'addCart' AND properties['pageId']='720',\n" +
+                "    eventId = 'collect' AND properties['pageId']='263'\n" +
+                "   ) AS is_match3,\n" +
+                "  sequenceMatch('.*(?1).*(?2)')(\n" +
+                "    toDateTime(`timeStamp`),\n" +
+                "    eventId = 'adShow' AND properties['adId']='10',\n" +
+                "    eventId = 'addCart' AND properties['pageId']='720'\n" +
+                "  ) AS is_match2,\n" +
+                " sequenceMatch('.*(?1).*')(\n" +
+                "    toDateTime(`timeStamp`),\n" +
+                "    eventId = 'adShow' AND properties['adId']='10',\n" +
+                "    eventId = 'addCart' AND properties['pageId']='720'\n" +
+                "  ) AS is_match1\n");
+
+        ss.append("FROM " + EventRuleConstant.CLICKHOUSE_TABLE_NAME + "\n");
+
+        ss.append("WHERE userId='u202112180001' AND  `timeStamp` > 1639756800000\n" +
+                "  AND (\n" +
+                "        (eventId='adShow' AND properties['adId']='10')\n" +
+                "        OR\n" +
+                "        (eventId = 'addCart' AND properties['pageId']='720')\n" +
+                "        OR\n" +
+                "        (eventId = 'collect' AND properties['pageId']='263')\n" +
+                "    )\n" +
+                "GROUP BY userId\n");
+
+        String querySqlStr = ss.toString();
 
         System.out.println(querySqlStr);
 
