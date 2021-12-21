@@ -30,7 +30,7 @@ public class RuleMatchKeyedProcessFunctionV1 extends KeyedProcessFunction<String
 
             if(isMatch){
 
-                RuleMatchResult matchResult = new RuleMatchResult("rule-001", "规则1");
+                RuleMatchResult matchResult = new RuleMatchResult("rule-001", "规则1", eventLogBean.getTimeStamp(), System.currentTimeMillis());
 
                 collector.collect(matchResult);
             }

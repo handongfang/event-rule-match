@@ -23,7 +23,7 @@ public class EventRuleCompareUtils {
      * @param eventCondition
      * @return
      */
-    public boolean eventMatchCondition(EventLogBean event , EventCondition eventCondition ) {
+    public static boolean eventMatchCondition(EventLogBean event, EventCondition eventCondition) {
         boolean isMatch = false;
         if (StringUtils.equals(event.getEventId(), eventCondition.getEventId())) {
             isMatch = true;

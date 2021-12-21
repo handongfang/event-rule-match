@@ -7,6 +7,22 @@ package com.bigdata.rulematch.java.bean;
 public class RuleMatchResult {
 
     /**
+     * 初始化
+     *
+     * @param ruleId
+     * @param ruleName
+     * @param trigEventTimestamp
+     * @param matchTimestamp
+     */
+    public RuleMatchResult(String ruleId, String ruleName, Long trigEventTimestamp, Long matchTimestamp) {
+        this.ruleId = ruleId;
+        this.ruleName = ruleName;
+        this.trigEventTimestamp = trigEventTimestamp;
+        this.matchTimestamp = matchTimestamp;
+    }
+
+
+    /**
      * 匹配上的规则Id
      */
     private String ruleId;
@@ -16,10 +32,16 @@ public class RuleMatchResult {
      */
     private String ruleName;
 
-    public RuleMatchResult(String ruleId, String ruleName) {
-        this.ruleId = ruleId;
-        this.ruleName = ruleName;
-    }
+    /**
+     * 触发规则匹配的那个事件的时间
+     */
+    private Long trigEventTimestamp;
+
+    /**
+     * 规则真正被匹配上的时间
+     */
+    private Long matchTimestamp;
+
 
     public String getRuleId() {
         return ruleId;
@@ -37,5 +59,20 @@ public class RuleMatchResult {
         this.ruleName = ruleName;
     }
 
+    public Long getTrigEventTimestamp() {
+        return trigEventTimestamp;
+    }
+
+    public void setTrigEventTimestamp(Long trigEventTimestamp) {
+        this.trigEventTimestamp = trigEventTimestamp;
+    }
+
+    public Long getMatchTimestamp() {
+        return matchTimestamp;
+    }
+
+    public void setMatchTimestamp(Long matchTimestamp) {
+        this.matchTimestamp = matchTimestamp;
+    }
 
 }

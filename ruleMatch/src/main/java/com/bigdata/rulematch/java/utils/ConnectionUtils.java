@@ -21,11 +21,11 @@ import org.apache.hadoop.hbase.client.ConnectionFactory;
  * 各种连接对象的工具类
  */
 public class ConnectionUtils {
-    private PropertiesConfiguration  config  = EventRuleConstant.config;
+    private static PropertiesConfiguration  config  = EventRuleConstant.config;
     /**
      * 获取 HBase 的连接对象
      */
-    public Connection getHBaseConnection() throws IOException {
+    public static Connection getHBaseConnection() throws IOException {
         // 初始化hbase连接配置
         Configuration hbaseConf = HBaseConfiguration.create();
 

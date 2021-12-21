@@ -20,7 +20,7 @@ public class RuleConditionEmulator {
     /**
      * 获取一个规则
      */
-    public RuleCondition getRuleConditions() throws ParseException {
+    public static RuleCondition getRuleConditions() throws ParseException {
 
         String ruleId = "rule_001";
         String keyByFields = "userId";
