@@ -1,4 +1,4 @@
-package com.bigdata.rulematch.java.service;
+package com.bigdata.rulematch.java.service.impl;
 
 import com.bigdata.rulematch.java.conf.EventRuleConstant;
 import org.apache.commons.lang.StringUtils;

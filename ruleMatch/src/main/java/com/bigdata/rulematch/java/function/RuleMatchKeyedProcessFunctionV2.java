@@ -3,7 +3,7 @@ package com.bigdata.rulematch.java.function;
 import com.bigdata.rulematch.java.bean.EventLogBean;
 import com.bigdata.rulematch.java.bean.RuleMatchResult;
 import com.bigdata.rulematch.java.conf.EventRuleConstant;
-import com.bigdata.rulematch.java.service.HBaseQueryServiceImpl;
+import com.bigdata.rulematch.java.service.impl.HBaseQueryServiceImpl;
 import com.bigdata.rulematch.java.bean.rule.RuleCondition;
 import com.bigdata.rulematch.java.datagen.RuleConditionEmulator;
 import com.bigdata.rulematch.java.utils.ConnectionUtils;

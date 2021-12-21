@@ -2,7 +2,7 @@ package com.bigdata.rulematch.scala.function
 
 import com.bigdata.rulematch.scala.bean.{EventLogBean, RuleMatchResult}
 import com.bigdata.rulematch.scala.conf.EventRuleConstant
-import com.bigdata.rulematch.scala.service.HBaseQueryServiceImpl
+import com.bigdata.rulematch.scala.service.impl.HBaseQueryServiceImpl
 import com.bigdata.rulematch.scala.utils.ConnectionUtils
 import org.apache.commons.configuration2.PropertiesConfiguration
 import org.apache.commons.lang3.StringUtils
