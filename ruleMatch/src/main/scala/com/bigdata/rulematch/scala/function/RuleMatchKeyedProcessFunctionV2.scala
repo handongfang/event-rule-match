@@ -1,17 +1,19 @@
 package com.bigdata.rulematch.scala.function
 
+import java.sql.Connection
+
 import com.bigdata.rulematch.scala.bean.{EventLogBean, RuleMatchResult}
 import com.bigdata.rulematch.scala.conf.EventRuleConstant
 import com.bigdata.rulematch.scala.datagen.RuleConditionEmulator
-import com.bigdata.rulematch.scala.service.HBaseQueryServiceImpl
+import com.bigdata.rulematch.scala.service.impl.{ClickHouseQueryServiceImpl, HBaseQueryServiceImpl}
 import com.bigdata.rulematch.scala.utils.{ConnectionUtils, EventRuleCompareUtils}
 import org.apache.commons.configuration2.PropertiesConfiguration
+import org.apache.commons.dbutils.DbUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction
 import org.apache.flink.util.Collector
 import org.apache.hadoop.hbase.{HBaseConfiguration, TableName}
-import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory, Get}
 import org.apache.hadoop.hbase.util.Bytes
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -33,17 +35,27 @@ class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction[String, Event
   /**
    * hbase连接
    */
-  private var hbaseConn: Connection = null
+  private var hbaseConn: org.apache.hadoop.hbase.client.Connection = null
+  /**
+   * clickhouse连接
+   */
+  private var ckConn: Connection = null
 
   private var hBaseQueryService: HBaseQueryServiceImpl = null
+  private var clickHouseQueryService: ClickHouseQueryServiceImpl = null
 
   override def open(parameters: Configuration): Unit = {
 
     // 初始化hbase连接
     hbaseConn = ConnectionUtils.getHBaseConnection()
+    // 初始化clickhouse连接
+    ckConn = ConnectionUtils.getClickHouseConnection()
 
     //初始化hbase查询服务对象
-    hBaseQueryService = new  HBaseQueryServiceImpl(hbaseConn)
+    hBaseQueryService = new HBaseQueryServiceImpl(hbaseConn)
+
+    //初始化clickhouse查询服务对象
+    clickHouseQueryService = new ClickHouseQueryServiceImpl(ckConn)
   }
 
   override def processElement(event: EventLogBean,
@@ -75,7 +87,22 @@ class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction[String, Event
         logger.debug("没有设置用户画像规则类条件")
       }
 
-      //4, TODO 行为次数类条件：A商品加入购物车次数超过3次,A商品收藏次数大于5次  （clickhouse）
+      //4, TODO 行为次数类条件  （clickhouse）
+      val actionCountConditionList = ruleCondition.actionCountConditionList
+      if (actionCountConditionList != null && actionCountConditionList.size > 0) {
+        logger.debug(s"开始行为次数类规则条件: ${actionCountConditionList}")
+
+        val keyByFiedValue = ctx.getCurrentKey
+
+        actionCountConditionList.foreach(eventCondition => {
+
+          //判断是否满足
+          clickHouseQueryService.queryActionCountCondition(ruleCondition.keyByFields, keyByFiedValue, eventCondition)
+        })
+
+      } else {
+        logger.debug("开始匹配行为次数类规则条件")
+      }
 
       //5, TODO 行为次序类条件: 用户依次浏览A页面->把B商品(商品Id为pd001)加入购物车->B商品提交订单   （clickhouse）
 
@@ -95,6 +122,15 @@ class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction[String, Event
 
   override def close(): Unit = {
     //关闭hbase连接
-    hbaseConn.close()
+    if (hbaseConn != null) {
+      try {
+        hbaseConn.close()
+      } catch {
+        case _ =>
+      }
+    }
+
+    //关闭clickhouse连接
+    DbUtils.closeQuietly(ckConn)
   }
 }

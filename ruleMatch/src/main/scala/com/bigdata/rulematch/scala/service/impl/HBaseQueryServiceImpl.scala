@@ -1,6 +1,5 @@
-package com.bigdata.rulematch.scala.service
+package com.bigdata.rulematch.scala.service.impl
 
-import com.bigdata.rulematch.scala.bean.EventLogBean
 import com.bigdata.rulematch.scala.conf.EventRuleConstant
 import org.apache.commons.lang3.StringUtils
 import org.apache.hadoop.hbase.TableName
