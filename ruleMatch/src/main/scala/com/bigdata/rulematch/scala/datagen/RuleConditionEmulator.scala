@@ -1,6 +1,6 @@
 package com.bigdata.rulematch.scala.datagen
 
-import com.bigdata.rulematch.scala.bean.rule.{EventCombinationCondition, EventCondition, RuleCondition, RuleConditionV2}
+import com.bigdata.rulematch.scala.bean.rule.{EventCondition, EventSeqCondition, RuleCondition}
 import com.bigdata.rulematch.scala.conf.EventRuleConstant
 import org.apache.commons.lang3.time.DateUtils
 
@@ -111,9 +111,20 @@ object RuleConditionEmulator {
     val actionSeqCondition3: EventCondition = EventCondition(EventRuleConstant.EVENT_ORDER_SUBMIT,
       actionSeqCondition3Map, actionSeqConditionStartTime, actionSeqConditionEndTime)
 
-    val actionSeqConditionList: List[EventCondition] = List[EventCondition](
-      actionSeqCondition1, actionSeqCondition2, actionSeqCondition3
+    val eventSeqList: List[EventCondition] = List[EventCondition](
+        actionSeqCondition1, actionSeqCondition2, actionSeqCondition3
     )
+
+    //次序类查询的sql语句
+    val actionSeqQuerySql =
+      """
+        |
+        |""".stripMargin
+
+    //行为序列也可以有多个
+    val eventSeqCondition1 = EventSeqCondition(actionSeqConditionStartTime, actionSeqConditionEndTime, eventSeqList, actionSeqQuerySql)
+
+    val actionSeqConditionList = List[EventSeqCondition](eventSeqCondition1)
 
     /**
      * 封装规则条件并返回

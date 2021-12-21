@@ -37,5 +37,5 @@ case class RuleCondition(
                           /**
                            * 行为次序类条件
                            */
-                          actionSeqConditionList: List[EventCondition]
+                          actionSeqConditionList: List[EventSeqCondition]
                         )
