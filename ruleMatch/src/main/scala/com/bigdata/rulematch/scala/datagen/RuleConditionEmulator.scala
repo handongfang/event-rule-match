@@ -16,29 +16,32 @@ object RuleConditionEmulator {
 
   /**
    * 获取一个规则
-   *
-   * @return
    */
   def getRuleConditions() = {
 
     val ruleId = "rule_001"
     val keyByFields = "userId"
 
-    // 触发事件条件
-    //触发事件的属性条件
+    /**
+     * 触发事件条件
+     */
     val eventProps: Map[String, String] = Map[String, String](
       "pageId" -> "A"
     )
     val triggerCondition = EventCondition(EventRuleConstant.EVENT_PAGE_VIEW, eventProps)
 
-    //用户画像条件
+    /**
+     * 用户画像条件
+     */
     val userProfileConditions: Map[String, String] = Map[String, String](
       "sex" -> "female",
       "ageStart" -> "18",
       "ageEnd" -> "30"
     )
 
-    // 行为次数条件列表  2021-12-10 00:00:00 至今, A商品加入购物车次数超过3次,A商品收藏次数大于5次
+    /**
+     * 行为次数条件列表  2021-12-10 00:00:00 至今, A商品加入购物车次数超过3次,A商品收藏次数大于5次
+     */
     val actionCountCondition1Map: Map[String, String] = Map[String, String](
       "productId" -> "A"
     )
@@ -58,7 +61,9 @@ object RuleConditionEmulator {
 
     val actionCountConditionList: List[EventCondition] = List[EventCondition](actionCountCondition1, actionCountCondition2)
 
-    //行为次序类条件列表 2021-12-18 00:00:00 至今, 用户依次浏览A页面->把B商品(商品Id为B)加入购物车->B商品提交订单
+    /**
+     * 行为次序类条件列表 2021-12-18 00:00:00 至今, 用户依次浏览A页面->把B商品(商品Id为B)加入购物车->B商品提交订单
+     */
 
     val actionSeqConditionStartTimeStr = "2021-12-18 00:00:00"
     val actionSeqConditionEndTimeStr = "9999-12-31 00:00:00"
@@ -88,6 +93,9 @@ object RuleConditionEmulator {
       actionSeqCondition1, actionSeqCondition2, actionSeqCondition3
     )
 
+    /**
+     * 封装规则条件并返回
+     */
     RuleCondition(ruleId, keyByFields, triggerCondition, userProfileConditions,
       actionCountConditionList, actionSeqConditionList)
   }
