@@ -30,23 +30,23 @@ public class RuleConditionV2 {
     /**
      * 规则Id
      */
-    String ruleId;
+    private  String ruleId;
     /**
      * keyby的字段, 使用逗号分割，例如:  "province,city"
      */
-    String keyByFields;
+    private  String keyByFields;
     /**
      * 规则触发条件
      */
-    EventCondition triggerEventCondition;
+    private  EventCondition triggerEventCondition;
     /**
      * 用户画像属性条件
      */
-    Map<String, String> userProfileConditions;
+    private Map<String, String> userProfileConditions;
     /**
      * 行为组合条件
      */
-    EventCombinationCondition[] eventCombinationConditionList;
+    private EventCombinationCondition[] eventCombinationConditionList;
 
     public String getRuleId() {
         return ruleId;

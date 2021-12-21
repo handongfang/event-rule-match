@@ -32,32 +32,32 @@ public class RuleCondition {
     /**
      * 规则Id
      */
-    String ruleId;
+    private String ruleId;
 
     /**
      * keyby的字段, 使用逗号分割，例如:  "province,city"
      */
-    String keyByFields;
+    private  String keyByFields;
 
     /**
      * 规则触发条件
      */
-    EventCondition triggerEventCondition;
+    private EventCondition triggerEventCondition;
 
     /**
      * 用户画像属性条件
      */
-    Map<String, String> userProfileConditions;
+    private  Map<String, String> userProfileConditions;
 
     /**
      * 行为次数类规则条件
      */
-    EventCondition[] actionCountConditionList;
+    private  EventCondition[] actionCountConditionList;
 
     /**
      * 行为次序类条件
      */
-    EventCondition[] actionSeqConditionList;
+    private   EventCondition[] actionSeqConditionList;
 
 
     public String getRuleId() {
