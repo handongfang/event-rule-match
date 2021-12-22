@@ -27,7 +27,7 @@ case class RuleConditionV2(
                           /**
                            * 用户画像属性条件
                            */
-                          userProfileConditions: Map[String,String],
+                          userProfileConditions: Map[String,(String, String)],
 
                           /**
                            * 行为组合条件

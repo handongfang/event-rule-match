@@ -33,10 +33,9 @@ object RuleConditionEmulator {
     /**
      * 用户画像条件
      */
-    val userProfileConditions: Map[String, String] = Map[String, String](
-      "sex" -> "female",
-      "ageStart" -> "18",
-      "ageEnd" -> "30"
+    val userProfileConditions: Map[String, (String, String)] = Map[String, (String, String)](
+      "sex" -> (EventRuleConstant.OPERATOR_EQUEAL, "female"),
+      "age" -> (EventRuleConstant.OPERATOR_GREATERTHAN, "18")
     )
 
     /**

@@ -27,7 +27,7 @@ class HBaseQueryServiceImpl {
    * @return
    */
   def userProfileConditionIsMatch(rowkey: String,
-                                  userProfileConditions: Map[String, String]) = {
+                                  userProfileConditions: Map[String, (String, String)]) = {
     var isMatch = true
 
     //获取到hbase的表
@@ -46,21 +46,109 @@ class HBaseQueryServiceImpl {
     val result = table.get(get)
 
     //判断查询出来的标签值与用户画像规则条件中的值是否一致
-    //这里做了简化,正常情况下,Map的value可以使用一个二元组,第一个元素是比较符,第二个元素是比较的值
-    //这样就会很灵活，比如判断年龄是否大于18岁,目前这种简化的方式，只能判断等于18岁
     val tagsIterator = tags.iterator
     while (tagsIterator.hasNext && isMatch) {
       val tag = tagsIterator.next()
       val valueBytes: Array[Byte] = result.getValue(Bytes.toBytes(family), Bytes.toBytes(tag))
 
-      val valueStr = Bytes.toString(valueBytes)
+      val queryValue = Bytes.toString(valueBytes)
 
-      val userProfileConditionsValue = userProfileConditions.getOrElse(tag, "")
+      val userProfileTagOptAndValue = userProfileConditions.getOrElse(tag, (EventRuleConstant.OPERATOR_EQUEAL, ""))
 
-      if (!StringUtils.equals(valueStr, userProfileConditionsValue)) {
+      val userProfileTagOpt = userProfileTagOptAndValue._1
+      val userProfileTagValue = userProfileTagOptAndValue._2
+
+      if (!compareUserTag(userProfileTagOpt, userProfileTagValue, queryValue)) {
         isMatch = false
-        logger.debug(s"用户画像类规则不匹配, 标签名: ${tag}, 规则中要求的值: ${userProfileConditionsValue}, " +
-          s"hbase中查询到的值: ${valueStr}")
+        logger.debug(s"用户画像类规则不匹配, 标签名: ${tag}, 规则中要求的值: ${userProfileTagOptAndValue}, " +
+          s"hbase中查询到的值: ${queryValue}")
+      }
+    }
+
+    isMatch
+  }
+
+  def compareUserTag(opt: String, optValue: String, queryValue: String) = {
+    var isMatch = false
+
+    val optVal = StringUtils.trim(optValue)
+
+    //是否为数字
+    var optValIsNumber = false
+    //对应的数字
+    var optValNumber = 0L
+    //查询出来的数字
+    var queryValNumber = 0L
+
+    try {
+      optValNumber = optVal.toLong
+
+      queryValNumber = StringUtils.trim(queryValue).toLong
+
+      optValIsNumber = true
+    } catch {
+      case _ =>
+    }
+
+    opt match {
+      case EventRuleConstant.OPERATOR_CONTAIN =>{
+        isMatch = StringUtils.contains(queryValue, optVal)
+      }
+      case EventRuleConstant.OPERATOR_NOT_CONTAIN =>{
+        isMatch = !StringUtils.contains(queryValue, optVal)
+      }
+      case EventRuleConstant.OPERATOR_EQUEAL => {
+        isMatch = StringUtils.equals(StringUtils.trim(queryValue), optVal)
+      }
+      case EventRuleConstant.OPERATOR_NOT_EQUEAL => {
+        isMatch = !StringUtils.equals(StringUtils.trim(queryValue), optVal)
+      }
+      case EventRuleConstant.OPERATOR_GREATERTHAN => {
+        if(optValIsNumber){
+
+          if(queryValue > optVal) {
+            isMatch = true
+          }
+
+        }else{
+          logger.error(s"规则中要求的数值 ${optVal} 或者 查询结果中的数值: ${queryValue} 不是数字类型, 不支持的比较类型: ${opt}")
+        }
+      }
+      case EventRuleConstant.OPERATOR_GREATER_EQUEAL => {
+        if(optValIsNumber){
+
+          if(queryValue >= optVal) {
+            isMatch = true
+          }
+
+        }else{
+          logger.error(s"规则中要求的数值 ${optVal} 或者 查询结果中的数值: ${queryValue} 不是数字类型, 不支持的比较类型: ${opt}")
+        }
+      }
+      case EventRuleConstant.OPERATOR_LESSTHAN => {
+        if(optValIsNumber){
+
+          if(queryValue < optVal) {
+            isMatch = true
+          }
+
+        }else{
+          logger.error(s"规则中要求的数值 ${optVal} 或者 查询结果中的数值: ${queryValue} 不是数字类型, 不支持的比较类型: ${opt}")
+        }
+      }
+      case EventRuleConstant.OPERATOR_LESSTHAN_EQUEAL => {
+        if(optValIsNumber){
+
+          if(queryValue <= optVal) {
+            isMatch = true
+          }
+
+        }else{
+          logger.error(s"规则中要求的数值 ${optVal} 或者 查询结果中的数值: ${queryValue} 不是数字类型, 不支持的比较类型: ${opt}")
+        }
+      }
+      case _ => {
+        logger.error(s"不支持的比较类型: ${opt}")
       }
     }
 

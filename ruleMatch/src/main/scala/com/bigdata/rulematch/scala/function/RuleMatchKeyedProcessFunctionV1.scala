@@ -63,10 +63,9 @@ class RuleMatchKeyedProcessFunctionV1 extends KeyedProcessFunction[String, Event
 
       //满足规则触发条件
       //2,判断是否满足用户画像条件  性别：女; 年龄: >18岁  （hbase）
-      val userProfileConditions: Map[String, String] = Map[String, String](
-        "sex" -> "female",
-        "ageStart" -> "18",
-        "ageEnd" -> "30"
+      val userProfileConditions: Map[String, (String, String)] = Map[String, (String, String)](
+        "sex" -> (EventRuleConstant.OPERATOR_EQUEAL, "female"),
+        "age" -> (EventRuleConstant.OPERATOR_GREATERTHAN, "18")
       )
       if (userProfileConditions != null && userProfileConditions.size > 0) {
         //只有设置了用户画像类条件,才去匹配

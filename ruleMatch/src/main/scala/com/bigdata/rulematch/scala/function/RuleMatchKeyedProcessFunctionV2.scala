@@ -73,7 +73,7 @@ class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction[String, Event
       var isMatch = false
 
       //3, 判断是否满足用户画像条件（hbase）
-      val userProfileConditions: Map[String, String] = ruleCondition.userProfileConditions
+      val userProfileConditions: Map[String, (String, String)] = ruleCondition.userProfileConditions
       if (userProfileConditions != null && userProfileConditions.size > 0) {
         //只有设置了用户画像类条件,才去匹配
         logger.debug(s"开始匹配用户画像类规则条件: ${userProfileConditions}")
