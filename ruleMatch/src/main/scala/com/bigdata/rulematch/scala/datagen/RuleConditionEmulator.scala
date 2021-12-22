@@ -55,7 +55,7 @@ object RuleConditionEmulator {
          | FROM ${EventRuleConstant.CLICKHOUSE_TABLE_NAME}
          |WHERE ${keyByFields} = ? AND properties['productId'] = 'A'
          | AND eventId = '${EventRuleConstant.EVENT_ADD_CART}'
-         | AND timeStamp BETWEEN ${actionCountConditionStartTime} AND ${actionCountConditionEndTime}
+         | AND `timeStamp` BETWEEN ${actionCountConditionStartTime} AND ${actionCountConditionEndTime}
          |""".stripMargin
 
     val actionCountCondition1: EventCondition = EventCondition(EventRuleConstant.EVENT_ADD_CART,
@@ -73,7 +73,7 @@ object RuleConditionEmulator {
          | FROM ${EventRuleConstant.CLICKHOUSE_TABLE_NAME}
          |WHERE ${keyByFields} = ? AND properties['productId'] = 'A'
          | AND eventId = '${EventRuleConstant.EVENT_COLLECT}'
-         | AND timeStamp BETWEEN ${actionCountConditionStartTime} AND ${actionCountConditionEndTime}
+         | AND `timeStamp` BETWEEN ${actionCountConditionStartTime} AND ${actionCountConditionEndTime}
          |""".stripMargin
 
     val actionCountCondition2: EventCondition = EventCondition(EventRuleConstant.EVENT_COLLECT,
@@ -116,9 +116,37 @@ object RuleConditionEmulator {
 
     //次序类查询的sql语句
     val actionSeqQuerySql =
-      """
-        |
-        |""".stripMargin
+      s"""
+         |SELECT
+         |    sequenceMatch('.*(?1).*(?2).*(?3).*')(
+         |    toDateTime(`timeStamp`),
+         |    eventId = '${EventRuleConstant.EVENT_PAGE_VIEW}',
+         |    eventId = '${EventRuleConstant.EVENT_ADD_CART}',
+         |    eventId = '${EventRuleConstant.EVENT_ORDER_SUBMIT}'
+         |   ) AS is_match3,
+         |  sequenceMatch('.*(?1).*(?2).*')(
+         |    toDateTime(`timeStamp`),
+         |    eventId = '${EventRuleConstant.EVENT_PAGE_VIEW}',
+         |    eventId = '${EventRuleConstant.EVENT_ADD_CART}',
+         |    eventId = '${EventRuleConstant.EVENT_ORDER_SUBMIT}'
+         |  ) AS is_match2,
+         | sequenceMatch('.*(?1).*')(
+         |    toDateTime(`timeStamp`),
+         |    eventId = '${EventRuleConstant.EVENT_PAGE_VIEW}',
+         |    eventId = '${EventRuleConstant.EVENT_ADD_CART}',
+         |    eventId = '${EventRuleConstant.EVENT_ORDER_SUBMIT}'
+         |  ) AS is_match1
+         |FROM ${EventRuleConstant.CLICKHOUSE_TABLE_NAME}
+         |WHERE ${keyByFields} = ? AND `timeStamp` BETWEEN ${actionSeqConditionStartTime} AND ${actionSeqConditionEndTime}
+         |  AND (
+         |        (eventId='${EventRuleConstant.EVENT_PAGE_VIEW}' AND properties['pageId']='A')
+         |        OR
+         |        (eventId = '${EventRuleConstant.EVENT_ADD_CART}' AND properties['productId']='B')
+         |        OR
+         |        (eventId = '${EventRuleConstant.EVENT_ORDER_SUBMIT}' AND properties['productId']='B')
+         |    )
+         |GROUP BY userId
+         |""".stripMargin
 
     //行为序列也可以有多个
     val eventSeqCondition1 = EventSeqCondition(actionSeqConditionStartTime, actionSeqConditionEndTime, eventSeqList, actionSeqQuerySql)

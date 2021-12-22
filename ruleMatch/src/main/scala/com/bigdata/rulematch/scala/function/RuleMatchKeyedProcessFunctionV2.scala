@@ -2,7 +2,7 @@ package com.bigdata.rulematch.scala.function
 
 import java.sql.Connection
 
-import com.bigdata.rulematch.scala.bean.rule.EventCondition
+import com.bigdata.rulematch.scala.bean.rule.{EventCondition, EventSeqCondition}
 import com.bigdata.rulematch.scala.bean.{EventLogBean, RuleMatchResult}
 import com.bigdata.rulematch.scala.conf.EventRuleConstant
 import com.bigdata.rulematch.scala.datagen.RuleConditionEmulator
@@ -114,7 +114,7 @@ class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction[String, Event
           logger.debug("没有设置行为次数类规则条件")
         }
 
-        //5, TODO 行为次序类条件  （clickhouse）
+        //5, 行为次序类条件  （clickhouse）
         if (isMatch) {
           logger.debug("行为次数类规则满足,开始匹配行为次序类条件 ")
 
@@ -123,6 +123,23 @@ class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction[String, Event
           if (actionSeqConditionList != null && actionSeqConditionList.size > 0) {
             logger.debug(s"开始匹配行为次序类规则条件: ${actionSeqConditionList}")
 
+            val keyByFiedValue = ctx.getCurrentKey
+
+            val actionSeqIterator = actionSeqConditionList.iterator
+
+            while (actionSeqIterator.hasNext && isMatch) {
+
+              val seqCondition: EventSeqCondition = actionSeqIterator.next()
+
+              //查询最大匹配步骤
+              val maxStep = clickHouseQueryService.queryActionSeqCondition(ruleCondition.keyByFields, keyByFiedValue, seqCondition)
+              //拿查询出来的最大匹配步骤与规则中要求的次序条件个数进行比较
+              if (maxStep >= seqCondition.eventSeqList.size) {
+                //查询出来的最大匹配步骤满足次序条件的个数,什么都不做,继续判断下一个序列条件是否满足
+              } else {
+                isMatch = false
+              }
+            }
 
           } else {
             logger.debug("没有设置行为次序类规则条件")
@@ -133,7 +150,7 @@ class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction[String, Event
             logger.info("所有规则匹配成功,准备输出匹配结果信息...")
 
             //创建规则匹配结果对象
-            val matchResult = RuleMatchResult("rule-001", "规则1", event.timeStamp, System.currentTimeMillis())
+            val matchResult = RuleMatchResult(ctx.getCurrentKey, ruleCondition.ruleId, event.timeStamp, System.currentTimeMillis())
 
             //将匹配结果输出
             out.collect(matchResult)

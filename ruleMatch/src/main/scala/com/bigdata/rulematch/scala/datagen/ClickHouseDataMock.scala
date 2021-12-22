@@ -33,6 +33,7 @@ object ClickHouseDataMock {
 
   /**
    * 将 EventLogBean 数据插入 ClickHouse
+   *
    * @param eventLogBean
    */
   def eventLogDataToClickHouse(eventLogBean: EventLogBean) = {
@@ -41,9 +42,9 @@ object ClickHouseDataMock {
 
     val sqlStr =
       s"""
-        |INSERT INTO ${EventRuleConstant.CLICKHOUSE_TABLE_NAME}
-        |(userId,eventId,timeStamp,properties) VALUES(?,?,?,?)
-        |""".stripMargin
+         |INSERT INTO ${EventRuleConstant.CLICKHOUSE_TABLE_NAME}
+         |(userId,eventId,timeStamp,properties) VALUES(?,?,?,?)
+         |""".stripMargin
 
     val pstmt = conn.prepareStatement(sqlStr)
 
@@ -98,37 +99,41 @@ object ClickHouseDataMock {
      * Aggregate function sequenceMatch requires at least 3 arguments
      * sequenceMatch至少需要3个参数，所以is_match1中多给了一个参数
      */
+
+    //下面的语句,select中可以不写properties,因为在where条件中已经做过滤了
     val querySqlStr =
-      s"""
-        |SELECT
-        |    userId,
-        |    sequenceMatch('.*(?1).*(?2).*(?3)')(
-        |    toDateTime(`timeStamp`),
-        |    eventId = 'adShow' AND properties['adId']='10',
-        |    eventId = 'addCart' AND properties['pageId']='720',
-        |    eventId = 'collect' AND properties['pageId']='263'
-        |   ) AS is_match3,
-        |  sequenceMatch('.*(?1).*(?2)')(
-        |    toDateTime(`timeStamp`),
-        |    eventId = 'adShow' AND properties['adId']='10',
-        |    eventId = 'addCart' AND properties['pageId']='720'
-        |  ) AS is_match2,
-        | sequenceMatch('.*(?1).*')(
-        |    toDateTime(`timeStamp`),
-        |    eventId = 'adShow' AND properties['adId']='10',
-        |    eventId = 'addCart' AND properties['pageId']='720'
-        |  ) AS is_match1
-        |FROM ${EventRuleConstant.CLICKHOUSE_TABLE_NAME}
-        |WHERE userId='u202112180001' AND  `timeStamp` > 1639756800000
-        |  AND (
-        |        (eventId='adShow' AND properties['adId']='10')
-        |        OR
-        |        (eventId = 'addCart' AND properties['pageId']='720')
-        |        OR
-        |        (eventId = 'collect' AND properties['pageId']='263')
-        |    )
-        |GROUP BY userId
-        |""".stripMargin
+    s"""
+       |SELECT
+       |    userId,
+       |    sequenceMatch('.*(?1).*(?2).*(?3).*')(
+       |    toDateTime(`timeStamp`),
+       |    eventId = 'adShow',
+       |    eventId = 'addCart',
+       |    eventId = 'collect'
+       |   ) AS is_match3,
+       |  sequenceMatch('.*(?1).*(?2).*')(
+       |    toDateTime(`timeStamp`),
+       |    eventId = 'adShow',
+       |    eventId = 'addCart',
+       |    eventId = 'collect'
+       |  ) AS is_match2,
+       | sequenceMatch('.*(?1).*')(
+       |    toDateTime(`timeStamp`),
+       |    eventId = 'adShow',
+       |    eventId = 'addCart',
+       |    eventId = 'collect'
+       |  ) AS is_match1
+       |FROM ${EventRuleConstant.CLICKHOUSE_TABLE_NAME}
+       |WHERE userId='u202112180001' AND  `timeStamp` > 1639756800000
+       |  AND (
+       |        (eventId='adShow' AND properties['adId']='10')
+       |        OR
+       |        (eventId = 'addCart' AND properties['pageId']='720')
+       |        OR
+       |        (eventId = 'collect' AND properties['pageId']='263')
+       |    )
+       |GROUP BY userId
+       |""".stripMargin
 
     println(querySqlStr)
 
@@ -138,7 +143,7 @@ object ClickHouseDataMock {
 
     val rs: ResultSet = pstmt.executeQuery()
 
-    while(rs.next()){
+    while (rs.next()) {
       val userId = rs.getString("userId")
       val isMatch3 = rs.getInt("is_match3")
       val isMatch2 = rs.getInt("is_match2")
