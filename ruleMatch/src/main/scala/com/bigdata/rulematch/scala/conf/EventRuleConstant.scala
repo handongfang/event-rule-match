@@ -45,4 +45,22 @@ object EventRuleConstant {
   val EVENT_ORDER_SUBMIT = "orderSubmit"
   //订单支付事件
   val EVENT_ORDER_PAY = "orderPay"
+
+  //用户画像规则比较符号
+  //大于
+  val OPERATOR_GREATERTHAN = "gt"
+  //大于等于
+  val OPERATOR_GREATER_EQUEAL = "ge"
+  //小于
+  val OPERATOR_LESSTHAN = "lt"
+  //小于等于
+  val OPERATOR_LESSTHAN_EQUEAL = "le"
+  //等于
+  val OPERATOR_EQUEAL = "eq"
+  //不等于
+  val OPERATOR_NOT_EQUEAL = "neq"
+  //包含
+  val OPERATOR_CONTAIN = "contain"
+  //不包含
+  val OPERATOR_NOT_CONTAIN = "notContain"
 }
