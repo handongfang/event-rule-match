@@ -1,76 +1,48 @@
-package com.bigdata.rulematch.scala.function
+package com.bigdata.rulematch.scala.router
 
 import java.sql.Connection
 
-import com.bigdata.rulematch.scala.bean.rule.{EventCondition, EventSeqCondition}
-import com.bigdata.rulematch.scala.bean.{EventLogBean, RuleMatchResult}
-import com.bigdata.rulematch.scala.conf.EventRuleConstant
-import com.bigdata.rulematch.scala.datagen.RuleConditionEmulator
+import com.bigdata.rulematch.scala.bean.EventLogBean
+import com.bigdata.rulematch.scala.bean.rule.{EventCondition, EventSeqCondition, RuleCondition}
 import com.bigdata.rulematch.scala.service.impl.{ClickHouseQueryServiceImpl, HBaseQueryServiceImpl}
 import com.bigdata.rulematch.scala.utils.{ConnectionUtils, EventRuleCompareUtils}
-import org.apache.commons.configuration2.PropertiesConfiguration
 import org.apache.commons.dbutils.DbUtils
-import org.apache.flink.configuration.Configuration
-import org.apache.flink.streaming.api.functions.KeyedProcessFunction
-import org.apache.flink.util.Collector
 import org.slf4j.{Logger, LoggerFactory}
 
 /**
- *
- * 静态规则匹配KeyedProcessFunction 版本2
- *
- * 主要是把规则进行封装, 而不是写死在代码中
- *
- * @author Administrator
- * @version 1.0
- * @date 2021-12-19 15:07
+ * 简单查询路由, 用于控制查询流程
  */
-class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction[String, EventLogBean, RuleMatchResult] {
+class SimpleQueryRouter {
   private val logger: Logger = LoggerFactory.getLogger(this.getClass.getName.stripSuffix("$"))
-
-  private val config: PropertiesConfiguration = EventRuleConstant.config
-
   /**
    * hbase连接
    */
-  private var hbaseConn: org.apache.hadoop.hbase.client.Connection = null
+  private val hbaseConn: org.apache.hadoop.hbase.client.Connection = ConnectionUtils.getHBaseConnection()
   /**
    * clickhouse连接
    */
-  private var ckConn: Connection = null
+  private val ckConn: Connection = ConnectionUtils.getClickHouseConnection()
 
-  private var hBaseQueryService: HBaseQueryServiceImpl = null
-  private var clickHouseQueryService: ClickHouseQueryServiceImpl = null
+  //初始化hbase查询服务对象
+  private val hBaseQueryService: HBaseQueryServiceImpl = new HBaseQueryServiceImpl(hbaseConn)
 
-  override def open(parameters: Configuration): Unit = {
+  //初始化clickhouse查询服务对象
+  private val clickHouseQueryService: ClickHouseQueryServiceImpl = new ClickHouseQueryServiceImpl(ckConn)
 
-    // 初始化hbase连接
-    hbaseConn = ConnectionUtils.getHBaseConnection()
-    // 初始化clickhouse连接
-    ckConn = ConnectionUtils.getClickHouseConnection()
-
-    //初始化hbase查询服务对象
-    hBaseQueryService = new HBaseQueryServiceImpl(hbaseConn)
-
-    //初始化clickhouse查询服务对象
-    clickHouseQueryService = new ClickHouseQueryServiceImpl(ckConn)
-  }
-
-  override def processElement(event: EventLogBean,
-                              ctx: KeyedProcessFunction[String, EventLogBean, RuleMatchResult]#Context,
-                              out: Collector[RuleMatchResult]): Unit = {
-
-    //1. 获取模拟生成的规则
-    val ruleCondition = RuleConditionEmulator.getRuleConditions()
-
-    logger.debug(s"获取到的规则条件: ${ruleCondition}")
+  /**
+   * 规则匹配
+   */
+  def ruleMatch(event: EventLogBean,
+                keyByFiedValue:  String,
+                ruleCondition: RuleCondition) = {
+    var isMatch = false
 
     //2, 判断是否满足规则触发条件
     if (EventRuleCompareUtils.eventMatchCondition(event, ruleCondition.triggerEventCondition)) {
       logger.debug(s"满足规则的触发条件: ${ruleCondition.triggerEventCondition}")
       //满足规则的触发条件,才继续进行其他规则条件的匹配
 
-      var isMatch = true
+      isMatch = true
 
       //3, 判断是否满足用户画像条件（hbase）
       val userProfileConditions: Map[String, (String, String)] = ruleCondition.userProfileConditions
@@ -91,8 +63,6 @@ class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction[String, Event
         val actionCountConditionList = ruleCondition.actionCountConditionList
         if (actionCountConditionList != null && actionCountConditionList.size > 0) {
           logger.debug(s"开始匹配行为次数类规则条件: ${actionCountConditionList}")
-
-          val keyByFiedValue = ctx.getCurrentKey
 
           val actionCountIterator = actionCountConditionList.iterator
 
@@ -123,8 +93,6 @@ class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction[String, Event
           if (actionSeqConditionList != null && actionSeqConditionList.size > 0) {
             logger.debug(s"开始匹配行为次序类规则条件: ${actionSeqConditionList}")
 
-            val keyByFiedValue = ctx.getCurrentKey
-
             val actionSeqIterator = actionSeqConditionList.iterator
 
             while (actionSeqIterator.hasNext && isMatch) {
@@ -145,17 +113,6 @@ class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction[String, Event
             logger.debug("没有设置行为次序类规则条件")
           }
 
-          if (isMatch) {
-
-            logger.info("所有规则匹配成功,准备输出匹配结果信息...")
-
-            //创建规则匹配结果对象
-            val matchResult = RuleMatchResult(ctx.getCurrentKey, ruleCondition.ruleId, event.timeStamp, System.currentTimeMillis())
-
-            //将匹配结果输出
-            out.collect(matchResult)
-          }
-
         } else {
           logger.debug("行为次序类规则不满足, 规则全部匹配完毕, 没有命中任何规则 ")
         }
@@ -168,9 +125,13 @@ class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction[String, Event
       logger.debug(s"不满足规则的触发条件: ${ruleCondition.triggerEventCondition}")
     }
 
+    isMatch
   }
 
-  override def close(): Unit = {
+  /**
+   * 关闭连接
+   */
+  def closeConnection() = {
     //关闭hbase连接
     if (hbaseConn != null) {
       try {
