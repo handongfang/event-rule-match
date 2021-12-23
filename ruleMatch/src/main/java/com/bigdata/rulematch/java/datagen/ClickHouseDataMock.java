@@ -1,7 +1,6 @@
 package com.bigdata.rulematch.java.datagen;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.bigdata.rulematch.java.bean.EventLogBean;
 import com.bigdata.rulematch.java.conf.EventRuleConstant;
 import org.apache.commons.dbutils.DbUtils;

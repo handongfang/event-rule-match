@@ -50,7 +50,7 @@ public class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction<String
     @Override
     public void processElement(EventLogBean eventLogBean, Context context, Collector<RuleMatchResult> collector) throws Exception {
         //1. 获取模拟生成的规则
-        RuleCondition ruleCondition = RuleConditionEmulator.getRuleConditions();
+        RuleCondition ruleCondition = RuleConditionEmulator.getRuleConditions(eventLogBean.getTimeStamp());
 
         logger.debug(String.format("获取到的规则条件: %s", ruleCondition));
 

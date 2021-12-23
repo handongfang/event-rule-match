@@ -3,9 +3,12 @@ package com.bigdata.rulematch.java.datagen;
 import com.bigdata.rulematch.java.bean.rule.EventCondition;
 import com.bigdata.rulematch.java.bean.rule.RuleCondition;
 import com.bigdata.rulematch.java.conf.EventRuleConstant;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 
 import java.text.ParseException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,7 +23,7 @@ public class RuleConditionEmulator {
     /**
      * 获取一个规则
      */
-    public static RuleCondition getRuleConditions() throws ParseException {
+    public static RuleCondition getRuleConditions(Long envetTimeStamp) throws ParseException {
 
         String ruleId = "rule_001";
         String keyByFields = "userId";
@@ -46,21 +49,36 @@ public class RuleConditionEmulator {
          */
         //配置条件属性
         String actionCountConditionStartTimeStr = "2021-12-10 00:00:00";
+        if(envetTimeStamp>0L){
+            //当前事件时间
+            Date date = new Date(envetTimeStamp);
+            //DateUtils.addDays(date,-15);//前15天开始
+            actionCountConditionStartTimeStr = DateFormatUtils.format(DateUtils.addMonths(date,-1).getTime(),"yyyy-MM-dd HH:mm:SS");
+        }
         String actionCountConditionEndTimeStr = "9999-12-31 00:00:00";
         Long actionCountConditionStartTime = DateUtils.parseDate(actionCountConditionStartTimeStr, "yyyy-MM-dd HH:mm:ss").getTime();
         Long actionCountConditionEndTime = DateUtils.parseDate(actionCountConditionEndTimeStr, "yyyy-MM-dd HH:mm:ss").getTime();
+
+        StringBuilder ss = new StringBuilder();
+        ss.append("SELECT count(1) AS cnt\n");
+        ss.append(String.format("FROM %s \n", EventRuleConstant.CLICKHOUSE_TABLE_NAME));
+        ss.append(String.format("WHERE %s = ? AND properties['productId'] = 'A' \n", keyByFields));
+        ss.append(String.format("AND eventId = '%s' \n", EventRuleConstant.EVENT_ADD_CART));
+        ss.append(String.format("AND `timeStamp` BETWEEN %s AND %s", actionCountConditionStartTime, actionCountConditionEndTime));
+
+        String actionCountQuerySql = ss.toString();
 
         Map<String, String> actionCountCondition1Map = new HashMap<String, String>();
         actionCountCondition1Map.put("productId", "A");
         //生成加入购物车次数条件
         EventCondition actionCountCondition1 = new EventCondition(EventRuleConstant.EVENT_ADD_CART,
-                actionCountCondition1Map, actionCountConditionStartTime, actionCountConditionEndTime, 3, Integer.MAX_VALUE);
+                actionCountCondition1Map, actionCountConditionStartTime, actionCountConditionEndTime, 3, Integer.MAX_VALUE, actionCountQuerySql);
 
         Map<String, String> actionCountCondition2Map = new HashMap<String, String>();
         actionCountCondition2Map.put("productId", "A");
         //生成收藏次数条件
         EventCondition actionCountCondition2 = new EventCondition(EventRuleConstant.EVENT_COLLECT,
-                actionCountCondition2Map, actionCountConditionStartTime, actionCountConditionEndTime, 5, Integer.MAX_VALUE);
+                actionCountCondition2Map, actionCountConditionStartTime, actionCountConditionEndTime, 5, Integer.MAX_VALUE, actionCountQuerySql);
 
         //条件列表
         EventCondition[] actionCountConditionList = new EventCondition[]{actionCountCondition1, actionCountCondition2};
@@ -70,6 +88,13 @@ public class RuleConditionEmulator {
          */
         //配置条件属性
         String actionSeqConditionStartTimeStr = "2021-12-18 00:00:00";
+        if(envetTimeStamp>0L){
+            //当前事件时间
+            Date date = new Date(envetTimeStamp);
+            //DateUtils.addDays(date,-3);//前3天开始
+            actionSeqConditionStartTimeStr = DateFormatUtils.format(DateUtils.addHours(date,-3).getTime(),"yyyy-MM-dd HH:mm:SS");
+
+        }
         String actionSeqConditionEndTimeStr = "9999-12-31 00:00:00";
 
         Long actionSeqConditionStartTime = DateUtils.parseDate(actionSeqConditionStartTimeStr, "yyyy-MM-dd HH:mm:ss").getTime();
@@ -79,19 +104,19 @@ public class RuleConditionEmulator {
         actionSeqCondition1Map.put("pageId", "A");
         //生成浏览页面条件
         EventCondition actionSeqCondition1 = new EventCondition(EventRuleConstant.EVENT_PAGE_VIEW,
-                actionSeqCondition1Map, actionSeqConditionStartTime, actionSeqConditionEndTime);
+                actionSeqCondition1Map, actionSeqConditionStartTime, actionSeqConditionEndTime,actionCountQuerySql);
 
         Map<String, String> actionSeqCondition2Map = new HashMap<String, String>();
         actionSeqCondition2Map.put("productId", "B");
         //生成加入购物车条件
         EventCondition actionSeqCondition2 = new EventCondition(EventRuleConstant.EVENT_ADD_CART,
-                actionSeqCondition2Map, actionSeqConditionStartTime, actionSeqConditionEndTime);
+                actionSeqCondition2Map, actionSeqConditionStartTime, actionSeqConditionEndTime,actionCountQuerySql);
 
         Map<String, String> actionSeqCondition3Map = new HashMap<String, String>();
         actionSeqCondition3Map.put("productId", "B");
         //生成提交订单条件
         EventCondition actionSeqCondition3 = new EventCondition(EventRuleConstant.EVENT_ORDER_SUBMIT,
-                actionSeqCondition3Map, actionSeqConditionStartTime, actionSeqConditionEndTime);
+                actionSeqCondition3Map, actionSeqConditionStartTime, actionSeqConditionEndTime,actionCountQuerySql);
 
         EventCondition[] actionSeqConditionList = new EventCondition[]{actionSeqCondition1, actionSeqCondition2, actionSeqCondition3};
 
