@@ -29,13 +29,14 @@ public class EventCondition {
      * @param minLimit
      * @param maxLimit
      */
-    public EventCondition(String eventId, Map<String, String> eventProps, Long timeRangeStart, Long timeRangeEnd, int minLimit, int maxLimit) {
+    public EventCondition(String eventId, Map<String, String> eventProps, Long timeRangeStart, Long timeRangeEnd, int minLimit, int maxLimit, String actionCountQuerySql) {
         this.eventId = eventId;
         this.eventProps = eventProps;
         this.timeRangeStart = timeRangeStart;
         this.timeRangeEnd = timeRangeEnd;
         this.minLimit = minLimit;
         this.maxLimit = maxLimit;
+        this.actionCountQuerySql = actionCountQuerySql;
     }
 
     /**
@@ -46,11 +47,12 @@ public class EventCondition {
      * @param timeRangeStart
      * @param timeRangeEnd
      */
-    public EventCondition(String eventId, Map<String, String> eventProps, Long timeRangeStart, Long timeRangeEnd) {
+    public EventCondition(String eventId, Map<String, String> eventProps, Long timeRangeStart, Long timeRangeEnd, String actionCountQuerySql) {
         this.eventId = eventId;
         this.eventProps = eventProps;
         this.timeRangeStart = timeRangeStart;
         this.timeRangeEnd = timeRangeEnd;
+        this.actionCountQuerySql = actionCountQuerySql;
     }
 
     /**
@@ -84,11 +86,15 @@ public class EventCondition {
      * 规则条件中的一个事件要求的发生次数最小值
      */
     private int minLimit = 0;
-
     /**
      * 规则条件中的一个事件要求的发生次数最大值
      */
-    private  int maxLimit = 0;
+    private int maxLimit = Integer.MAX_VALUE;
+    /**
+     * 行为次数类规则的查询SQL语句,次数类条件,每个事件都需要查询一次
+     * 封装在条件中,会比在规则匹配时生成,耦合性低且减少每次的单独拼装
+     */
+    private String actionCountQuerySql;
 
 
     public String getEventId() {
@@ -138,4 +144,13 @@ public class EventCondition {
     public void setMaxLimit(int maxLimit) {
         this.maxLimit = maxLimit;
     }
+
+    public String getActionCountQuerySql() {
+        return actionCountQuerySql;
+    }
+
+    public void setActionCountQuerySql(String actionCountQuerySql) {
+        this.actionCountQuerySql = actionCountQuerySql;
+    }
+
 }
