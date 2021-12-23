@@ -20,7 +20,7 @@ public class RuleCondition {
      * @param actionCountConditionList
      * @param actionSeqConditionList
      */
-    public RuleCondition(String ruleId, String keyByFields, EventCondition triggerEventCondition, Map<String, String> userProfileConditions, EventCondition[] actionCountConditionList, EventCondition[] actionSeqConditionList) {
+    public RuleCondition(String ruleId, String keyByFields, EventCondition triggerEventCondition, Map<String, String> userProfileConditions, EventCondition[] actionCountConditionList, EventSeqCondition[] actionSeqConditionList) {
         this.ruleId = ruleId;
         this.keyByFields = keyByFields;
         this.triggerEventCondition = triggerEventCondition;
@@ -50,14 +50,14 @@ public class RuleCondition {
     private  Map<String, String> userProfileConditions;
 
     /**
-     * 行为次数类规则条件
+     * 事件次数规则条件
      */
     private  EventCondition[] actionCountConditionList;
 
     /**
-     * 行为次序类条件
+     * 事件次序类条件
      */
-    private   EventCondition[] actionSeqConditionList;
+    private   EventSeqCondition[] actionSeqConditionList;
 
 
     public String getRuleId() {
@@ -100,11 +100,11 @@ public class RuleCondition {
         this.actionCountConditionList = actionCountConditionList;
     }
 
-    public EventCondition[] getActionSeqConditionList() {
+    public EventSeqCondition[] getActionSeqConditionList() {
         return actionSeqConditionList;
     }
 
-    public void setActionSeqConditionList(EventCondition[] actionSeqConditionList) {
+    public void setActionSeqConditionList(EventSeqCondition[] actionSeqConditionList) {
         this.actionSeqConditionList = actionSeqConditionList;
     }
 

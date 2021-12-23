@@ -23,7 +23,14 @@ import java.util.Properties;
  */
 public class EventLogAutoGen {
     public static void main(String[] args) throws SQLException, ClassNotFoundException {
-        String eventLogJSONStr = String.format("{\"userId\":\"u202112180001\",\"timeStamp\": %d ,\"eventId\": %s,\"properties\":{\"pageId\":\"646\",\"productId\":\"157\",\"title\":\"爱得堡 男靴中高帮马丁靴秋冬雪地靴 H1878 复古黄 40码\",\"url\":\"https://item.jd.com/36506691363.html\"}}", System.currentTimeMillis(), EventRuleConstant.EVENT_PAGE_VIEW);
+        String eventLogJSONStr = String.format("{" +
+                        "\"userId\":\"u202112180001\"," +
+                        "\"timeStamp\": %d ,\"eventId\": %s," +
+                        "\"properties\":{\"pageId\":\"646\",\"productId\":\"157\"," +
+                        "\"title\":\"爱得堡 男靴中高帮马丁靴秋冬雪地靴 H1878 复古黄 40码\"," +
+                        "\"url\":\"https://item.jd.com/36506691363.html\"}" +
+                        "}"
+                , System.currentTimeMillis(), EventRuleConstant.EVENT_PAGE_VIEW);
 
         EventLogBean eventLogBean = JSON.parseObject(eventLogJSONStr, EventLogBean.class);
 

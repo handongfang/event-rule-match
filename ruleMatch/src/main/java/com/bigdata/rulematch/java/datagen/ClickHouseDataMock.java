@@ -94,19 +94,19 @@ public class ClickHouseDataMock {
                 "    userId,\n" +
                 "    sequenceMatch('.*(?1).*(?2).*(?3)')(\n" +
                 "    toDateTime(`timeStamp`),\n" +
-                "    eventId = 'adShow' AND properties['adId']='10',\n" +
-                "    eventId = 'addCart' AND properties['pageId']='720',\n" +
-                "    eventId = 'collect' AND properties['pageId']='263'\n" +
+                "    eventId = 'adShow' ,\n" +
+                "    eventId = 'addCart' ,\n" +
+                "    eventId = 'collect' \n" +
                 "   ) AS is_match3,\n" +
                 "  sequenceMatch('.*(?1).*(?2)')(\n" +
                 "    toDateTime(`timeStamp`),\n" +
-                "    eventId = 'adShow' AND properties['adId']='10',\n" +
-                "    eventId = 'addCart' AND properties['pageId']='720'\n" +
+                "    eventId = 'adShow' ,\n" +
+                "    eventId = 'addCart' \n" +
                 "  ) AS is_match2,\n" +
                 " sequenceMatch('.*(?1).*')(\n" +
                 "    toDateTime(`timeStamp`),\n" +
-                "    eventId = 'adShow' AND properties['adId']='10',\n" +
-                "    eventId = 'addCart' AND properties['pageId']='720'\n" +
+                "    eventId = 'adShow' ,\n" +
+                "    eventId = 'addCart'\n" +
                 "  ) AS is_match1\n");
 
         ss.append("FROM " + EventRuleConstant.CLICKHOUSE_TABLE_NAME + "\n");

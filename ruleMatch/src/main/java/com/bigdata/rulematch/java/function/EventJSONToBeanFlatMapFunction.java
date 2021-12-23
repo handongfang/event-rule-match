@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * 用户事件日志数据解析
+ *
  * @author HanDongfang
  * @create 2021-12-19  22:02
  */

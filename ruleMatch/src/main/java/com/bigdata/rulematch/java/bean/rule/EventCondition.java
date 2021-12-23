@@ -47,12 +47,11 @@ public class EventCondition {
      * @param timeRangeStart
      * @param timeRangeEnd
      */
-    public EventCondition(String eventId, Map<String, String> eventProps, Long timeRangeStart, Long timeRangeEnd, String actionCountQuerySql) {
+    public EventCondition(String eventId, Map<String, String> eventProps, Long timeRangeStart, Long timeRangeEnd) {
         this.eventId = eventId;
         this.eventProps = eventProps;
         this.timeRangeStart = timeRangeStart;
         this.timeRangeEnd = timeRangeEnd;
-        this.actionCountQuerySql = actionCountQuerySql;
     }
 
     /**
