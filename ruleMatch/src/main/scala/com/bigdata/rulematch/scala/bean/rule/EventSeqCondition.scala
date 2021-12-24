@@ -26,10 +26,10 @@ case class EventSeqCondition(
                            /**
                             * 这个序列中要求包含的事件条件
                             */
-                           eventSeqList: List[EventCondition] = _,
+                           var eventSeqList: List[EventCondition] = List.empty[EventCondition],
 
                            /**
                             * 行为序列类规则的查询SQL语句, 可能会包含多个序列, 每个序列都需要查询一次
                             */
-                           var actionSeqQuerySql: String = _
+                           var actionSeqQuerySql: String
                          )

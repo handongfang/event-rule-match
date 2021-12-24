@@ -50,5 +50,5 @@ case class EventCondition(
                             * 行为次数类规则的查询SQL语句,次数类条件,每个事件都需要查询一次
                             * 封装在条件中,会比在规则匹配时生成,耦合性低
                             */
-                           var actionCountQuerySql: String = _
+                           var actionCountQuerySql: String = ""
                          )
