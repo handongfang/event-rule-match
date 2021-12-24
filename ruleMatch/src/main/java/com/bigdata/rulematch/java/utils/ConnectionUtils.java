@@ -39,7 +39,7 @@ public class ConnectionUtils {
     /**
      * 获取 ClickHouse 连接对象
      */
-    public java.sql.Connection getClickHouseConnection() throws ClassNotFoundException, SQLException {
+    public static java.sql.Connection getClickHouseConnection() throws ClassNotFoundException, SQLException {
         // 加载驱动类
         Class.forName(EventRuleConstant.CLICKHOUSE_DRIVER_NAME);
 
