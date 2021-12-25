@@ -33,6 +33,17 @@ class ClickHouseQueryServiceImpl {
                                 keyByFieldValue: String,
                                 eventCondition: EventCondition) = {
 
+    queryActionCountCondition(keyByField, keyByFieldValue, eventCondition,
+      eventCondition.timeRangeStart, eventCondition.timeRangeEnd)
+
+  }
+
+  def queryActionCountCondition(keyByField: String,
+                                keyByFieldValue: String,
+                                eventCondition: EventCondition,
+                                queryTimeStart: Long,
+                                queryTimeEnd: Long) = {
+
     logger.debug("CK收到一个行为次数类查询条件,keyByField:{}, keyByFieldValue: {}, 规则条件:{}", keyByField, keyByFieldValue, eventCondition)
 
     val querySqlStr = eventCondition.actionCountQuerySql
@@ -42,6 +53,8 @@ class ClickHouseQueryServiceImpl {
     val pstmt: PreparedStatement = ckConn.prepareStatement(querySqlStr)
 
     pstmt.setString(1, keyByFieldValue)
+    pstmt.setLong(2, queryTimeStart)
+    pstmt.setLong(3, queryTimeEnd)
 
     val rs: ResultSet = pstmt.executeQuery()
 
@@ -80,6 +93,8 @@ class ClickHouseQueryServiceImpl {
     val pstmt: PreparedStatement = ckConn.prepareStatement(querySqlStr)
 
     pstmt.setString(1, keyByFieldValue)
+    pstmt.setLong(1, eventSeqCondition.timeRangeStart)
+    pstmt.setLong(1, eventSeqCondition.timeRangeEnd)
 
     val rs: ResultSet = pstmt.executeQuery()
 

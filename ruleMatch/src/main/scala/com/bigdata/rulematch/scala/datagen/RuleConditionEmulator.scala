@@ -49,13 +49,16 @@ object RuleConditionEmulator {
     val actionCountConditionStartTime = DateUtils.parseDate(actionCountConditionStartTimeStr, "yyyy-MM-dd HH:mm:ss").getTime
     val actionCountConditionEndTime = DateUtils.parseDate(actionCountConditionEndTimeStr, "yyyy-MM-dd HH:mm:ss").getTime
 
+    /**
+     * 由于跨界查询的时候,时间并不是取的规则中的时间,所以时间不能在这里拼装
+     */
     var actionCountQuerySql =
       s"""
          |SELECT count(1) AS cnt
          | FROM ${EventRuleConstant.CLICKHOUSE_TABLE_NAME}
          |WHERE ${keyByFields} = ? AND properties['productId'] = 'A'
          | AND eventId = '${EventRuleConstant.EVENT_ADD_CART}'
-         | AND `timeStamp` BETWEEN ${actionCountConditionStartTime} AND ${actionCountConditionEndTime}
+         | AND `timeStamp` BETWEEN ? AND ?
          |""".stripMargin
 
     val actionCountCondition1: EventCondition = EventCondition(EventRuleConstant.EVENT_ADD_CART,
@@ -73,7 +76,7 @@ object RuleConditionEmulator {
          | FROM ${EventRuleConstant.CLICKHOUSE_TABLE_NAME}
          |WHERE ${keyByFields} = ? AND properties['productId'] = 'A'
          | AND eventId = '${EventRuleConstant.EVENT_COLLECT}'
-         | AND `timeStamp` BETWEEN ${actionCountConditionStartTime} AND ${actionCountConditionEndTime}
+         | AND `timeStamp` BETWEEN ? AND ?
          |""".stripMargin
 
     val actionCountCondition2: EventCondition = EventCondition(EventRuleConstant.EVENT_COLLECT,
@@ -115,6 +118,9 @@ object RuleConditionEmulator {
     )
 
     //次序类查询的sql语句
+    /**
+     * 由于跨界查询的时候,时间并不是取的规则中的时间,所以时间不能在这里拼装
+     */
     val actionSeqQuerySql =
       s"""
          |SELECT
@@ -137,7 +143,7 @@ object RuleConditionEmulator {
          |    eventId = '${EventRuleConstant.EVENT_ORDER_SUBMIT}'
          |  ) AS is_match1
          |FROM ${EventRuleConstant.CLICKHOUSE_TABLE_NAME}
-         |WHERE ${keyByFields} = ? AND `timeStamp` BETWEEN ${actionSeqConditionStartTime} AND ${actionSeqConditionEndTime}
+         |WHERE ${keyByFields} = ? AND `timeStamp` BETWEEN ? AND ?
          |  AND (
          |        (eventId='${EventRuleConstant.EVENT_PAGE_VIEW}' AND properties['pageId']='A')
          |        OR
