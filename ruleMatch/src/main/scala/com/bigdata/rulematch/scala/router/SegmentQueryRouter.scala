@@ -4,7 +4,7 @@ import java.sql.Connection
 
 import com.bigdata.rulematch.scala.bean.EventLogBean
 import com.bigdata.rulematch.scala.bean.rule.{EventCondition, EventSeqCondition, RuleCondition}
-import com.bigdata.rulematch.scala.service.impl.{ClickHouseQueryServiceImpl, HBaseQueryServiceImpl}
+import com.bigdata.rulematch.scala.service.impl.{ClickHouseQueryServiceImpl, HBaseQueryServiceImpl, StateQueryServiceImpl}
 import com.bigdata.rulematch.scala.utils.{ConnectionUtils, EventRuleCompareUtils, SegmentQueryUtil}
 import org.apache.commons.dbutils.DbUtils
 import org.apache.flink.api.common.state.ListState
@@ -29,6 +29,9 @@ class SegmentQueryRouter {
 
   //初始化clickhouse查询服务对象
   private val clickHouseQueryService: ClickHouseQueryServiceImpl = new ClickHouseQueryServiceImpl(ckConn)
+
+  //初始化flink state查询服务对象
+  private val stateQueryService: StateQueryServiceImpl = new StateQueryServiceImpl()
 
   /**
    * 规则匹配
@@ -84,7 +87,7 @@ class SegmentQueryRouter {
               //如果规则的开始时间都在分界点的右侧,则只需要查询flink state
               //                     |-------------
               //-------------------|------------------
-              val matchCount = stateQueryEventCount(eventListState, countCondition, countCondition.timeRangeStart,
+              val matchCount = stateQueryService.stateQueryEventCount(eventListState, countCondition, countCondition.timeRangeStart,
                 countCondition.timeRangeEnd)
 
               if (matchCount < countCondition.minLimit || matchCount > countCondition.maxLimit) {
@@ -106,7 +109,7 @@ class SegmentQueryRouter {
               //            |-------------|
               //-------------------|------------------
               //先查flink state (分界点往后的查询state)
-              val matchCountInState = stateQueryEventCount(eventListState, countCondition, queryBoundPoint, countCondition.timeRangeEnd)
+              val matchCountInState = stateQueryService.stateQueryEventCount(eventListState, countCondition, queryBoundPoint, countCondition.timeRangeEnd)
 
               if (matchCountInState < countCondition.minLimit || matchCountInState > countCondition.maxLimit) {
                 //state中不满足,再查clickhouse  (分界点往前的查询state)
@@ -114,7 +117,7 @@ class SegmentQueryRouter {
                   keyByFiedValue, countCondition, countCondition.timeRangeStart, queryBoundPoint)
 
                 val matchCount = matchCountInState + matchCountInCK
-                if(matchCount < countCondition.minLimit || matchCount > countCondition.maxLimit){
+                if (matchCount < countCondition.minLimit || matchCount > countCondition.maxLimit) {
                   isMatch = false
                 }
 
@@ -141,10 +144,17 @@ class SegmentQueryRouter {
             while (actionSeqIterator.hasNext && isMatch) {
               val seqCondition: EventSeqCondition = actionSeqIterator.next()
 
-              if(seqCondition.timeRangeStart >= queryBoundPoint){
+              if (seqCondition.timeRangeStart >= queryBoundPoint) {
                 //规则的起始时间大于分界点, 只查state
+                val maxStep = stateQueryService.stateQueryEventSequence(eventListState, seqCondition.eventSeqList,
+                  seqCondition.timeRangeStart, seqCondition.timeRangeEnd)
 
-              }else if(seqCondition.timeRangeEnd < queryBoundPoint){
+                //拿查询出来的最大匹配步骤与规则中要求的次序条件个数进行比较
+                if (maxStep < seqCondition.eventSeqList.size) {
+                  isMatch = false
+                }
+
+              } else if (seqCondition.timeRangeEnd < queryBoundPoint) {
                 //规则的结束时间小于分界点, 只查ck
                 //查询最大匹配步骤
                 val maxStep = clickHouseQueryService.queryActionSeqCondition(ruleCondition.keyByFields, keyByFiedValue, seqCondition)
@@ -153,18 +163,45 @@ class SegmentQueryRouter {
                   isMatch = false
                 }
 
-              }else{
+              } else {
                 //跨界查询
+                val eventSeqList = seqCondition.eventSeqList
+                //先查一次state,有可能在state中就直接满足了,就不需要再查询clickhouse了
+                var maxStep = stateQueryService.stateQueryEventSequence(eventListState, eventSeqList,
+                  queryBoundPoint, seqCondition.timeRangeEnd)
+
+                if (maxStep < eventSeqList.size) {
+                  //如果状态中没有满足,再分别查询 ck 和 state, state中的数据没有复用,是因为需要考虑的情况比较复杂
+                  //查询ck
+                  val ckMaxStep = clickHouseQueryService.queryActionSeqCondition(ruleCondition.keyByFields,
+                    keyByFiedValue, seqCondition, seqCondition.timeRangeStart, queryBoundPoint)
+
+                  if (ckMaxStep < eventSeqList.size) {
+                    //当ck中查询到的还不满足条件时，才需要再次查询state
+                    //把序列条件截短
+                    val truncateSeqList = eventSeqList.slice(ckMaxStep, eventSeqList.size)
+                    val stateMaxStep = stateQueryService.stateQueryEventSequence(eventListState, truncateSeqList,
+                      queryBoundPoint, seqCondition.timeRangeEnd)
+
+                    maxStep = ckMaxStep + stateMaxStep
+                    if (maxStep < eventSeqList.size) {
+                      //如果一个seq条件不满足,整个循环都可以跳出了
+                      isMatch = false
+                    }
+
+                  }
+
+                }
 
               }
 
             }
 
-          }else{
+          } else {
             logger.debug("没有设置行为次序类规则条件")
           }
 
-        }else{
+        } else {
           logger.debug("存在不满足的规则条件, 行为次序类规则不需要进行匹配 ")
         }
 
@@ -175,42 +212,6 @@ class SegmentQueryRouter {
     }
 
     isMatch
-  }
-
-  /**
-   * 用于判断List中的事件是否满足给定的次数类规则
-   *
-   * queryStartTime和queryEndTime主要是考虑到跨界查询才添加的，而不是直接使用条件中的时间
-   *
-   * @param eventListState
-   * @param countCondition
-   * @param queryStartTime
-   * @param queryEndTime
-   * @return
-   */
-  def stateQueryEventCount(eventListState: ListState[EventLogBean],
-                           countCondition: EventCondition,
-                           queryStartTime: Long,
-                           queryEndTime: Long) = {
-    //用于记录满足规则的事件个数
-    var matchCount = 0
-    val listStateIterator = eventListState.get().iterator()
-    while (listStateIterator.hasNext) {
-      val stateEventLogBean = listStateIterator.next()
-      //判断遍历到的时间时间是否落在规则中要求的时间范围内
-      if (stateEventLogBean.timeStamp >= queryStartTime &&
-        stateEventLogBean.timeStamp <= queryEndTime) {
-
-        if (EventRuleCompareUtils.eventMatchCondition(stateEventLogBean, countCondition)) {
-          //如果事件与规则匹配,匹配数则 +1
-          matchCount += 1
-        }
-
-      }
-
-    }
-
-    matchCount
   }
 
   /**

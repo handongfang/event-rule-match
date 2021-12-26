@@ -3,9 +3,7 @@ package com.bigdata.rulematch.scala.service.impl
 import java.sql.{Connection, PreparedStatement, ResultSet}
 
 import com.bigdata.rulematch.scala.bean.rule.{EventCondition, EventSeqCondition}
-import com.bigdata.rulematch.scala.conf.EventRuleConstant
 import org.apache.commons.dbutils.DbUtils
-import org.apache.flink.shaded.zookeeper3.org.apache.zookeeper.server.ZooKeeperServer.DataTreeBuilder
 import org.slf4j.{Logger, LoggerFactory}
 
 /**
@@ -84,6 +82,26 @@ class ClickHouseQueryServiceImpl {
   def queryActionSeqCondition(keyByField: String,
                                 keyByFieldValue: String,
                                 eventSeqCondition: EventSeqCondition) = {
+
+    queryActionSeqCondition(keyByField, keyByFieldValue, eventSeqCondition,
+      eventSeqCondition.timeRangeStart, eventSeqCondition.timeRangeEnd)
+
+  }
+
+  /**
+   * 根据给定的序列类条件, 返回最大完成的步骤号
+   * @param keyByField
+   * @param keyByFieldValue
+   * @param eventSeqCondition
+   * @param queryTimeStart
+   * @param queryTimeEnd
+   * @return
+   */
+  def queryActionSeqCondition(keyByField: String,
+                              keyByFieldValue: String,
+                              eventSeqCondition: EventSeqCondition,
+                              queryTimeStart: Long,
+                              queryTimeEnd: Long) = {
     logger.debug("CK收到一个行为次序类查询条件,keyByField:{}, keyByFieldValue: {}, 规则条件:{}", keyByField, keyByFieldValue, eventSeqCondition)
 
     val querySqlStr = eventSeqCondition.actionSeqQuerySql
@@ -93,8 +111,8 @@ class ClickHouseQueryServiceImpl {
     val pstmt: PreparedStatement = ckConn.prepareStatement(querySqlStr)
 
     pstmt.setString(1, keyByFieldValue)
-    pstmt.setLong(1, eventSeqCondition.timeRangeStart)
-    pstmt.setLong(1, eventSeqCondition.timeRangeEnd)
+    pstmt.setLong(1, queryTimeStart)
+    pstmt.setLong(1, queryTimeEnd)
 
     val rs: ResultSet = pstmt.executeQuery()
 
