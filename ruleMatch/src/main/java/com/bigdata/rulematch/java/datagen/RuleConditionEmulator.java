@@ -6,6 +6,7 @@ import com.bigdata.rulematch.java.bean.rule.RuleCondition;
 import com.bigdata.rulematch.java.conf.EventRuleConstant;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.apache.commons.math3.util.Pair;
 
 import java.text.ParseException;
 import java.util.Date;
@@ -39,10 +40,10 @@ public class RuleConditionEmulator {
         /**
          * 用户画像条件
          */
-        Map<String, String> userProfileConditions = new HashMap<String, String>();
-        userProfileConditions.put("sex", "female");
-        userProfileConditions.put("ageStart", "18");
-        userProfileConditions.put("ageEnd", "30");
+        Map<String, Pair<String, String >> userProfileConditions = new HashMap<String, Pair<String, String > >();
+        userProfileConditions.put("sex", new Pair<String, String >(EventRuleConstant.OPERATOR_EQUEAL,"female"));
+        userProfileConditions.put("age", new Pair<String, String >(EventRuleConstant.OPERATOR_GREATER_EQUEAL,"18"));
+        userProfileConditions.put("age", new Pair<String, String >(EventRuleConstant.OPERATOR_LESS_EQUEAL,"30"));
 
         /**
          * 多个事件次数条件列表  2021-12-10 00:00:00 至今, A商品加入购物车次数超过3次,A商品收藏次数大于5次

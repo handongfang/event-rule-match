@@ -1,5 +1,7 @@
 package com.bigdata.rulematch.java.bean.rule;
 
+import org.apache.commons.math3.util.Pair;
+
 import java.util.Map;
 
 /**
@@ -20,7 +22,7 @@ public class RuleCondition {
      * @param actionCountConditionList
      * @param actionSeqConditionList
      */
-    public RuleCondition(String ruleId, String keyByFields, EventCondition triggerEventCondition, Map<String, String> userProfileConditions, EventCondition[] actionCountConditionList, EventSeqCondition[] actionSeqConditionList) {
+    public RuleCondition(String ruleId, String keyByFields, EventCondition triggerEventCondition, Map<String, Pair<String, String>> userProfileConditions, EventCondition[] actionCountConditionList, EventSeqCondition[] actionSeqConditionList) {
         this.ruleId = ruleId;
         this.keyByFields = keyByFields;
         this.triggerEventCondition = triggerEventCondition;
@@ -37,7 +39,7 @@ public class RuleCondition {
     /**
      * keyby的字段, 使用逗号分割，例如:  "province,city"
      */
-    private  String keyByFields;
+    private String keyByFields;
 
     /**
      * 规则触发条件
@@ -47,17 +49,17 @@ public class RuleCondition {
     /**
      * 用户画像属性条件
      */
-    private  Map<String, String> userProfileConditions;
+    private Map<String, Pair<String, String>> userProfileConditions;
 
     /**
      * 事件次数规则条件
      */
-    private  EventCondition[] actionCountConditionList;
+    private EventCondition[] actionCountConditionList;
 
     /**
      * 事件次序类条件
      */
-    private   EventSeqCondition[] actionSeqConditionList;
+    private EventSeqCondition[] actionSeqConditionList;
 
 
     public String getRuleId() {
@@ -84,11 +86,11 @@ public class RuleCondition {
         this.triggerEventCondition = triggerEventCondition;
     }
 
-    public Map<String, String> getUserProfileConditions() {
+    public Map<String, Pair<String, String>> getUserProfileConditions() {
         return userProfileConditions;
     }
 
-    public void setUserProfileConditions(Map<String, String> userProfileConditions) {
+    public void setUserProfileConditions(Map<String, Pair<String, String>> userProfileConditions) {
         this.userProfileConditions = userProfileConditions;
     }
 

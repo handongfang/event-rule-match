@@ -7,6 +7,7 @@ import com.bigdata.rulematch.java.service.impl.HBaseQueryServiceImpl;
 import com.bigdata.rulematch.java.utils.ConnectionUtils;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.math3.util.Pair;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
@@ -57,10 +58,10 @@ public class RuleMatchKeyedProcessFunctionV1 extends KeyedProcessFunction<String
             logger.debug(String.format("满足规则触发条件: ", "浏览A页面"));
 
             //2,判断是否满足用户画像条件  性别：女; 年龄: >18岁  （hbase）
-            Map<String, String> userProfileConditions = new HashMap<String, String>();
-            userProfileConditions.put("sex", "female");
-            userProfileConditions.put("ageStart", "18");
-            userProfileConditions.put("ageEnd", "30");
+            Map<String, Pair<String, String >> userProfileConditions = new HashMap<String, Pair<String, String > >();
+            userProfileConditions.put("sex", new Pair<String, String >(EventRuleConstant.OPERATOR_EQUEAL,"female"));
+            userProfileConditions.put("age", new Pair<String, String >(EventRuleConstant.OPERATOR_GREATER_EQUEAL,"18"));
+            userProfileConditions.put("age", new Pair<String, String >(EventRuleConstant.OPERATOR_LESS_EQUEAL,"30"));
 
             if (userProfileConditions != null && userProfileConditions.size() > 0) {
                 //只有设置了用户画像类条件,才去匹配

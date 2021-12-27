@@ -2,6 +2,7 @@ package com.bigdata.rulematch.java.service.impl;
 
 import com.bigdata.rulematch.java.conf.EventRuleConstant;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.math3.util.Pair;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Get;
@@ -43,7 +44,7 @@ public class HBaseQueryServiceImpl {
      * @param userProfileConditions
      * @return
      */
-    public boolean userProfileConditionIsMatch(String rowkey, Map<String, String> userProfileConditions) {
+    public boolean userProfileConditionIsMatch(String rowkey, Map<String, Pair<String, String>> userProfileConditions) {
         boolean isMatch = true;
 
         //获取到hbase的表
@@ -63,15 +64,18 @@ public class HBaseQueryServiceImpl {
             // 执行get查询
             Result result = table.get(get);
 
-            for (Map.Entry<String, String> userProfileEntry : userProfileConditions.entrySet()) {
+            for (Map.Entry<String, Pair<String, String>> userProfileEntry : userProfileConditions.entrySet()) {
                 String key = userProfileEntry.getKey();
                 byte[] value = result.getValue(Bytes.toBytes(family), Bytes.toBytes(key));
                 String valueStr = value.toString();
-                String userProfileEntryValue = userProfileEntry.getValue();
-                //如果与查询值不匹配则停止比较并返回false
-                if (!StringUtils.equals(valueStr, userProfileEntryValue)) {
+
+                Pair<String, String> userProfileTagOptAndValue = userProfileEntry.getValue();
+                String userProfileTagOpt = userProfileTagOptAndValue.getKey();
+                String userProfileValue = userProfileTagOptAndValue.getValue();
+
+                if (!compareUserTag(userProfileTagOpt, valueStr, userProfileValue)) {
                     isMatch = false;
-                    break;
+                    logger.debug("用户画像类规则不匹配, 标签名: {}, 规则中要求的值: {},hbase中查询到的值: {}", userProfileTagOpt, valueStr, userProfileValue);
                 }
             }
 
@@ -81,5 +85,88 @@ public class HBaseQueryServiceImpl {
             logger.error(String.format("获取hbase表数据出错: %s", e));
             return false;
         }
+    }
+
+    /**
+     * 依据比较操作符号进行比对
+     *
+     * @param tagOpt
+     * @param queryValueStr
+     * @param ruleValueStr
+     * @return
+     */
+    private boolean compareUserTag(String tagOpt, String queryValueStr, String ruleValueStr) {
+        boolean isMatch = false;
+        //是非数值
+        boolean isNumber = false;
+        //去掉两端空白
+        queryValueStr = queryValueStr.trim();
+        ruleValueStr = ruleValueStr.trim();
+        int queryValue = 0;
+        int ruleValue = 0;
+
+        try {
+            queryValue = Integer.valueOf(queryValueStr);
+            ruleValue = Integer.valueOf(ruleValueStr);
+            isNumber = true;
+        } catch (NumberFormatException e) {
+            logger.debug("非数值类型: ", e);
+        }
+
+        switch (tagOpt.toUpperCase()) {
+            case EventRuleConstant.OPERATOR_CONTAIN :
+                isMatch = StringUtils.contains(queryValueStr, ruleValueStr);
+                break;
+
+            case EventRuleConstant.OPERATOR_NOT_CONTAIN:
+                isMatch = !StringUtils.contains(queryValueStr, ruleValueStr);
+                break;
+
+            case EventRuleConstant.OPERATOR_EQUEAL:
+                isMatch = StringUtils.equals(queryValueStr, ruleValueStr);
+                break;
+
+            case EventRuleConstant.OPERATOR_NOT_EQUEAL:
+                isMatch = !StringUtils.equals(queryValueStr, ruleValueStr);
+                break;
+
+            case EventRuleConstant.OPERATOR_GREATERTHAN:
+                if (isNumber) {
+                    isMatch = (queryValue > ruleValue);
+                } else {
+                    logger.error("非数值类型不能比较大小,queryValueStr:{},ruleValueStr{}", queryValueStr, ruleValueStr);
+                }
+                break;
+
+            case EventRuleConstant.OPERATOR_GREATER_EQUEAL:
+                if (isNumber) {
+                    isMatch = (queryValue >= ruleValue);
+                } else {
+                    logger.error("非数值类型不能比较大小,queryValueStr:{},ruleValueStr{}", queryValueStr, ruleValueStr);
+                }
+                break;
+
+            case EventRuleConstant.OPERATOR_LESSTHAN:
+                if (isNumber) {
+                    isMatch = (queryValue < ruleValue);
+                } else {
+                    logger.error("非数值类型不能比较大小,queryValueStr:{},ruleValueStr{}", queryValueStr, ruleValueStr);
+                }
+                break;
+
+            case EventRuleConstant.OPERATOR_LESS_EQUEAL:
+                if (isNumber) {
+                    isMatch = (queryValue <= ruleValue);
+                } else {
+                    logger.error("非数值类型不能比较大小,queryValueStr:{},ruleValueStr{}", queryValueStr, ruleValueStr);
+                }
+                break;
+
+            default:
+                isMatch = false;
+                logger.error("传入比较类型不正确: {}", tagOpt);
+        }
+
+        return isMatch;
     }
 }

@@ -12,6 +12,7 @@ import com.bigdata.rulematch.java.utils.ConnectionUtils;
 import com.bigdata.rulematch.java.utils.EventRuleCompareUtils;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.dbutils.DbUtils;
+import org.apache.commons.math3.util.Pair;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
 import org.apache.hadoop.hbase.client.Connection;
@@ -88,7 +89,7 @@ public class RuleMatchRouter {
             isMatch = true;
 
             //2, 判断是否满足用户画像条件（hbase）
-            Map<String, String> userProfileConditions = ruleCondition.getUserProfileConditions();
+            Map<String, Pair<String, String>> userProfileConditions = ruleCondition.getUserProfileConditions();
             if (userProfileConditions != null && userProfileConditions.size() > 0) {
                 //只有设置了用户画像类条件,才去查询
                 logger.debug(String.format("开始匹配用户画像类规则条件: %s", userProfileConditions));
