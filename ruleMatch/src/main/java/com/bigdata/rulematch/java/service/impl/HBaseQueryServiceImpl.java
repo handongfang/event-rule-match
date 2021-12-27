@@ -76,6 +76,7 @@ public class HBaseQueryServiceImpl {
                 if (!compareUserTag(userProfileTagOpt, valueStr, userProfileValue)) {
                     isMatch = false;
                     logger.debug("用户画像类规则不匹配, 标签名: {}, 规则中要求的值: {},hbase中查询到的值: {}", userProfileTagOpt, valueStr, userProfileValue);
+                    break; //存在不匹配立即结束比较
                 }
             }
 
@@ -114,7 +115,7 @@ public class HBaseQueryServiceImpl {
         }
 
         switch (tagOpt.toUpperCase()) {
-            case EventRuleConstant.OPERATOR_CONTAIN :
+            case EventRuleConstant.OPERATOR_CONTAIN:
                 isMatch = StringUtils.contains(queryValueStr, ruleValueStr);
                 break;
 

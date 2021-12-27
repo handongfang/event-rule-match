@@ -54,7 +54,7 @@ object EventRuleConstant {
   //小于
   val OPERATOR_LESSTHAN = "lt"
   //小于等于
-  val OPERATOR_LESSTHAN_EQUEAL = "le"
+  val OPERATOR_LESS_EQUEAL = "le"
   //等于
   val OPERATOR_EQUEAL = "eq"
   //不等于
