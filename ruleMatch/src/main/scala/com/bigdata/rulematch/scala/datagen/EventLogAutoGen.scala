@@ -5,8 +5,8 @@ import java.util.Properties
 import com.alibaba.fastjson.JSON
 import com.alibaba.fastjson.serializer.SerializerFeature
 import com.bigdata.rulematch.java.conf.EventRuleConstant
-import com.bigdata.rulematch.scala.bean.EventLogBean
-import com.bigdata.rulematch.scala.job.EventRuleMatchV1
+import com.bigdata.rulematch.scala.old.bean.EventLogBean
+import com.bigdata.rulematch.scala.old.job.EventRuleMatchV1
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
 import org.apache.kafka.common.serialization.StringSerializer
 

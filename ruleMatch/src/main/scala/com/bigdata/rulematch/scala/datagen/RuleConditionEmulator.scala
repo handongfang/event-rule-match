@@ -1,7 +1,7 @@
 package com.bigdata.rulematch.scala.datagen
 
-import com.bigdata.rulematch.scala.bean.rule.{EventCondition, EventSeqCondition, RuleCondition}
-import com.bigdata.rulematch.scala.conf.EventRuleConstant
+import com.bigdata.rulematch.scala.old.bean.rule.{EventCondition, EventSeqCondition, RuleCondition}
+import com.bigdata.rulematch.scala.old.conf.EventRuleConstant
 import org.apache.commons.lang3.time.DateUtils
 
 /**
