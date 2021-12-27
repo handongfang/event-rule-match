@@ -43,37 +43,43 @@ public class HBaseQueryServiceImpl {
      * @param userProfileConditions
      * @return
      */
-    public boolean userProfileConditionIsMatch(String rowkey, Map<String, String> userProfileConditions) throws IOException {
+    public boolean userProfileConditionIsMatch(String rowkey, Map<String, String> userProfileConditions) {
         boolean isMatch = true;
 
         //获取到hbase的表
-        Table table = hbaseConn.getTable(TableName.valueOf(EventRuleConstant.HBASE_USER_PROFILE_TABLE_NAME));
-
-        //生成get
-        Get get = new Get(Bytes.toBytes(rowkey));
-        //列族
-        String family = "f";
-        Set<String> keySet = userProfileConditions.keySet();
-        //添加查询列
-        for (String s : keySet) {
-            get.addColumn(Bytes.toBytes(family), Bytes.toBytes(s));
-        }
-
-        // 执行get查询
-        Result result = table.get(get);
-
-        for (Map.Entry<String, String> userProfileEntry : userProfileConditions.entrySet()) {
-            String key = userProfileEntry.getKey();
-            byte[] value = result.getValue(Bytes.toBytes(family), Bytes.toBytes(key));
-            String valueStr = value.toString();
-            String userProfileEntryValue = userProfileEntry.getValue();
-            //如果与查询值不匹配则停止比较并返回false
-            if (!StringUtils.equals(valueStr, userProfileEntryValue)) {
-                isMatch = false;
-                break;
+        Table table = null;
+        try {
+            table = hbaseConn.getTable(TableName.valueOf(EventRuleConstant.HBASE_USER_PROFILE_TABLE_NAME));
+            //生成get
+            Get get = new Get(Bytes.toBytes(rowkey));
+            //列族
+            String family = "f";
+            Set<String> keySet = userProfileConditions.keySet();
+            //添加查询列
+            for (String s : keySet) {
+                get.addColumn(Bytes.toBytes(family), Bytes.toBytes(s));
             }
-        }
 
-        return isMatch;
+            // 执行get查询
+            Result result = table.get(get);
+
+            for (Map.Entry<String, String> userProfileEntry : userProfileConditions.entrySet()) {
+                String key = userProfileEntry.getKey();
+                byte[] value = result.getValue(Bytes.toBytes(family), Bytes.toBytes(key));
+                String valueStr = value.toString();
+                String userProfileEntryValue = userProfileEntry.getValue();
+                //如果与查询值不匹配则停止比较并返回false
+                if (!StringUtils.equals(valueStr, userProfileEntryValue)) {
+                    isMatch = false;
+                    break;
+                }
+            }
+
+            return isMatch;
+        } catch (IOException e) {
+
+            logger.error(String.format("获取hbase表数据出错: %s", e));
+            return false;
+        }
     }
 }

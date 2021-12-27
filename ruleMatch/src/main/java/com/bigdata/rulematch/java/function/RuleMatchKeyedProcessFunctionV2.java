@@ -12,6 +12,7 @@ import com.bigdata.rulematch.java.datagen.RuleConditionEmulator;
 import com.bigdata.rulematch.java.utils.ConnectionUtils;
 import com.bigdata.rulematch.java.utils.EventRuleCompareUtils;
 import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.dbutils.DbUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
@@ -19,12 +20,14 @@ import org.apache.hadoop.hbase.client.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 
 /**
  * 静态规则匹配KeyedProcessFunction 版本2（对规则的封装处理）
+ * 很大一个缺点,规则匹配流程被写死,需要单独封装功能
  *
  * @author HanDongfang
  * @version 1.0
@@ -81,7 +84,8 @@ public class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction<String
             logger.debug(String.format("满足规则的触发条件: %s", ruleCondition.getTriggerEventCondition()));
             //满足规则的触发条件,才继续进行其他规则条件的匹配
 
-            boolean isMatch = false;
+            boolean isMatch = true;
+            String keyByFiedValue = context.getCurrentKey();
 
             //3, 判断是否满足用户画像条件（hbase）
             Map<String, String> userProfileConditions = ruleCondition.getUserProfileConditions();
@@ -93,7 +97,7 @@ public class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction<String
                 isMatch = hBaseQueryService.userProfileConditionIsMatch(eventLogBean.getUserId(), userProfileConditions);
 
             } else {
-                logger.debug("没有设置用户画像规则类条件");
+                logger.debug("没有设置用户画像规则类条件,继续向下匹配次数类条件");
             }
 
             //4, 行为次数类条件：A商品加入购物车次数超过3次,A商品收藏次数大于5次  （clickhouse）
@@ -106,46 +110,54 @@ public class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction<String
 
                     //从clickHouse中查询，并判断是否匹配
                     for (EventCondition eventCondition : actionCountConditionList) {
-                        Long countMax = clickHouseQueryService.queryActionCountCondition(ruleCondition.getKeyByFields(), eventLogBean.getUserId(), eventCondition);
+                        Long countMax = clickHouseQueryService.queryActionCountCondition(ruleCondition.getKeyByFields(), keyByFiedValue, eventCondition);
                         if (countMax < eventCondition.getMinLimit() || countMax > eventCondition.getMaxLimit()) {
                             isMatch = false;
                             break;
                         }
                     }
                 } else {
-                    logger.debug("没有设置行为次数类规则条件");
+                    logger.debug("没有设置行为次数类规则条件,继续向下匹配次序类条件");
                 }
+            } else {
+                logger.debug(String.format("不满足用户画像类条件: %s", ruleCondition.getUserProfileConditions()));
             }
 
             //5, 行为次序类条件: 用户依次浏览A页面->把B商品(商品Id为pd001)加入购物车->B商品提交订单   （clickhouse）
+            EventSeqCondition[] actionSeqConditionList = ruleCondition.getActionSeqConditionList();
             if (isMatch) {
                 logger.debug("行为次数类条件满足,开始匹配行为次序类条件 ");
-                EventSeqCondition[] actionSeqConditionList = ruleCondition.getActionSeqConditionList();
                 if (actionSeqConditionList != null && actionSeqConditionList.length > 0) {
                     //只有设置了次序类条件,才去查询
                     Iterator<EventSeqCondition> iterator = Arrays.stream(actionSeqConditionList).iterator();
 
                     //从clickHouse中查询，并判断是否匹配
-                    while (iterator.hasNext() && isMatch){
+                    while (iterator.hasNext() && isMatch) {
                         EventSeqCondition eventSeqCondition = iterator.next();
-                        int matchMax = clickHouseQueryService.queryActionSeqCondition(ruleCondition.getKeyByFields(), eventLogBean.getUserId(), eventSeqCondition);
-                        if(matchMax != eventSeqCondition.getEventSeqList().length){
+                        int matchMax = clickHouseQueryService.queryActionSeqCondition(ruleCondition.getKeyByFields(), keyByFiedValue, eventSeqCondition);
+                        if (matchMax != eventSeqCondition.getEventSeqList().length) {
                             isMatch = false;
                         }
                     }
-                }else{
-                    logger.debug("没有设置行为次序类规则条件");
+                } else {
+                    logger.debug("没有设置行为次序类规则条件,匹配已完成...");
                 }
+            } else {
+                logger.debug(String.format("不满足行为次数类条件: %s", actionCountConditionList.toString()));
             }
 
             if (isMatch) {
+                logger.debug("所有规则匹配成功,准备输出匹配结果信息...");
 
                 //创建规则匹配结果对象
                 RuleMatchResult matchResult = new RuleMatchResult("rule-001", "规则1", eventLogBean.getTimeStamp(), System.currentTimeMillis());
 
                 //将匹配结果输出
                 collector.collect(matchResult);
+            } else {
+                logger.debug(String.format("不满足次序类规则条件: %s", actionSeqConditionList));
             }
+
         } else {
             logger.debug(String.format("不满足规则的触发条件: %s", ruleCondition.getTriggerEventCondition()));
         }
@@ -153,8 +165,17 @@ public class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction<String
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         //关闭hbase连接
-        hbaseConn.close();
+        if(hbaseConn != null){
+            try {
+                hbaseConn.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //关闭clickhouse连接
+        DbUtils.closeQuietly(ckConn);
     }
 }
