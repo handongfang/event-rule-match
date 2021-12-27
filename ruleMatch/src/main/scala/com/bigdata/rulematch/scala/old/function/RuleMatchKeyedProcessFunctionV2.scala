@@ -2,10 +2,10 @@ package com.bigdata.rulematch.scala.old.function
 
 import java.sql.Connection
 
+import com.bigdata.rulematch.scala.old.utils.RuleConditionEmulator
 import com.bigdata.rulematch.scala.old.bean.rule.{EventCondition, EventSeqCondition}
 import com.bigdata.rulematch.scala.old.bean.{EventLogBean, RuleMatchResult}
 import com.bigdata.rulematch.scala.old.conf.EventRuleConstant
-import com.bigdata.rulematch.scala.datagen.RuleConditionEmulator
 import com.bigdata.rulematch.scala.old.service.impl.{ClickHouseQueryServiceImpl, HBaseQueryServiceImpl}
 import com.bigdata.rulematch.scala.old.utils.{ConnectionUtils, EventRuleCompareUtils}
 import org.apache.commons.configuration2.PropertiesConfiguration

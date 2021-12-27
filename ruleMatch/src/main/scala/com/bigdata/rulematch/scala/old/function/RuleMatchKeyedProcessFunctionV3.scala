@@ -1,7 +1,7 @@
 package com.bigdata.rulematch.scala.old.function
 
+import com.bigdata.rulematch.scala.old.utils.RuleConditionEmulator
 import com.bigdata.rulematch.scala.old.bean.{EventLogBean, RuleMatchResult}
-import com.bigdata.rulematch.scala.datagen.RuleConditionEmulator
 import com.bigdata.rulematch.scala.old.router.SimpleQueryRouter
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction

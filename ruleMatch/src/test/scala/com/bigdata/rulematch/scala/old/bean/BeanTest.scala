@@ -1,6 +1,5 @@
-package com.bigdata.rulematch.scala.bean
+package com.bigdata.rulematch.scala.old.bean
 
-import java.util
 
 import com.alibaba.fastjson.JSON
 

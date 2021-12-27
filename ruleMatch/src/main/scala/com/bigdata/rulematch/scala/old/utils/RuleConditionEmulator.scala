@@ -1,4 +1,4 @@
-package com.bigdata.rulematch.scala.datagen
+package com.bigdata.rulematch.scala.old.utils
 
 import com.bigdata.rulematch.scala.old.bean.rule.{EventCondition, EventSeqCondition, RuleCondition}
 import com.bigdata.rulematch.scala.old.conf.EventRuleConstant
@@ -114,7 +114,7 @@ object RuleConditionEmulator {
       actionSeqCondition3Map, actionSeqConditionStartTime, actionSeqConditionEndTime)
 
     val eventSeqList: List[EventCondition] = List[EventCondition](
-        actionSeqCondition1, actionSeqCondition2, actionSeqCondition3
+      actionSeqCondition1, actionSeqCondition2, actionSeqCondition3
     )
 
     //次序类查询的sql语句
@@ -164,41 +164,5 @@ object RuleConditionEmulator {
      */
     RuleCondition(ruleId, keyByFields, triggerCondition, userProfileConditions,
       actionCountConditionList, actionSeqConditionList)
-  }
-
-  def getRuleConditionsV2(): Unit = {
-    val ruleId = "rule_001"
-    val keyByFields = "userId"
-
-    // 触发事件条件
-    //触发事件的属性条件
-    val eventProps: Map[String, String] = Map[String, String](
-      "pageId" -> "A"
-    )
-    val triggerCondition = EventCondition(EventRuleConstant.EVENT_PAGE_VIEW, eventProps)
-
-    //用户画像条件
-    val userProfileConditions: Map[String, String] = Map[String, String](
-      "sex" -> "female",
-      "ageStart" -> "18",
-      "ageEnd" -> "30"
-    )
-
-    // 行为次数条件列表
-
-
-    /*val actionCountQuerySql =
-      s"""
-         |SELECT eventId
-         |  FROM ${EventRuleConstant.CLICKHOUSE_TABLE_NAME}
-         |WHERE eventId = '${EventRuleConstant.EVENT_ADD_CART}'
-         |  AND properties['productId']='A'
-         |  AND userId = ? AND timeStamp BETWEEN ? AND ?
-         |""".stripMargin
-    EventCombinationCondition(
-      0L, 0L, 3, null, "ck", actionCountQuerySql
-    )*/
-
-    //RuleCondition(ruleId, keyByFields, eventCondition, userProfileConditions, )
   }
 }

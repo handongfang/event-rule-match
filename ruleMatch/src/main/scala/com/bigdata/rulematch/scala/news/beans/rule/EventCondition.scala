@@ -1,4 +1,4 @@
-package com.bigdata.rulematch.scala.old.bean.rule
+package com.bigdata.rulematch.scala.news.beans.rule
 
 /**
  *
@@ -44,11 +44,5 @@ case class EventCondition(
                            /**
                             * 规则条件中的一个事件要求的发生次数最大值,默认是Int的最大值
                             */
-                           var maxLimit: Int = Int.MaxValue,
-
-                           /**
-                            * 行为次数类规则的查询SQL语句,次数类条件,每个事件都需要查询一次
-                            * 封装在条件中,会比在规则匹配时生成,耦合性低
-                            */
-                           var actionCountQuerySql: String = ""
+                           var maxLimit: Int = Int.MaxValue
                          )

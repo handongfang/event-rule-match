@@ -1,4 +1,4 @@
-package com.bigdata.rulematch.scala.old.bean.rule
+package com.bigdata.rulematch.scala.news.beans.rule
 
 /**
  *
@@ -30,9 +30,14 @@ case class EventCombinationCondition(
                                       var maxLimit: Int = 0,
 
                                       /**
-                                       * 组合条件中关心的事件的列表
+                                       * 组合条件中关心的事件的列表，这里面存的是一个一个的原子事件
                                        */
                                       eventConditionList: List[EventCondition],
+
+                                      /**
+                                       * 组合条件未来计算要用的正则匹配表达式,用来描述各种规则的模式字符串
+                                       */
+                                      matchPattern: String,
 
                                       /**
                                        * 查询的类型，比如ck表示查询clickhouse
@@ -42,5 +47,10 @@ case class EventCombinationCondition(
                                       /**
                                        * 查询的sql语句
                                        */
-                                      querySql: String
+                                      querySql: String,
+
+                                      /**
+                                       * 条件缓存Id
+                                       */
+                                      cacheId: String,
                                     )

@@ -1,9 +1,8 @@
-package com.bigdata.rulematch.scala.old.function
+package com.bigdata.rulematch.scala.news.functions
 
-import com.bigdata.rulematch.scala.old.utils.RuleConditionEmulator
-import com.bigdata.rulematch.scala.old.bean.{EventLogBean, RuleMatchResult}
-import com.bigdata.rulematch.scala.old.router.{SegmentQueryRouter, SimpleQueryRouter}
-import com.bigdata.rulematch.scala.old.utils.StateDescUtils
+import com.bigdata.rulematch.scala.news.beans.rule.MatchRule
+import com.bigdata.rulematch.scala.news.beans.{EventLogBean, RuleMatchResult}
+import com.bigdata.rulematch.scala.news.utils.{EventUtil, RuleConditionEmulator, StateDescUtils}
 import org.apache.flink.api.common.state.ListState
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction
@@ -20,17 +19,17 @@ import org.slf4j.{Logger, LoggerFactory}
  * @version 1.0
  * @date 2021-12-19 15:07
  */
-class RuleMatchKeyedProcessFunctionV4 extends KeyedProcessFunction[String, EventLogBean, RuleMatchResult] {
+class RuleMatchKeyedProcessFunction extends KeyedProcessFunction[String, EventLogBean, RuleMatchResult] {
   private val logger: Logger = LoggerFactory.getLogger(this.getClass.getName.stripSuffix("$"))
 
-  private var queryRouter: SegmentQueryRouter = null
+  //private var queryRouter: SimpleQueryRouter = null
 
   private var eventListState: ListState[EventLogBean] = null
 
   override def open(parameters: Configuration): Unit = {
 
     // 初始化查询路由对象
-    queryRouter = new SegmentQueryRouter()
+    //queryRouter = new SimpleQueryRouter()
 
     //初始化用于存放2小时内事件明细的状态
     eventListState = getRuntimeContext.getListState[EventLogBean](StateDescUtils.getEventBeanStateDesc())
@@ -44,12 +43,15 @@ class RuleMatchKeyedProcessFunctionV4 extends KeyedProcessFunction[String, Event
     eventListState.add(event)
 
     //获取模拟生成的规则
-    val ruleCondition = RuleConditionEmulator.getRuleConditions()
+    val ruleCondition: MatchRule = RuleConditionEmulator.getRuleConditions()
 
     logger.debug(s"获取到的规则条件: ${ruleCondition}")
 
     //判断是否满足规则触发条件
-    val isMatch = queryRouter.ruleMatch(event, ctx.getCurrentKey, ruleCondition, eventListState)
+    val triggerEventCondition = ruleCondition.triggerEventCondition
+    val isMatch = EventUtil.eventMatchCondition(event, triggerEventCondition)
+
+    //查询用户画像
 
     if (isMatch) {
 
@@ -66,6 +68,6 @@ class RuleMatchKeyedProcessFunctionV4 extends KeyedProcessFunction[String, Event
 
   override def close(): Unit = {
     //关闭连接
-    queryRouter.closeConnection()
+    //queryRouter.closeConnection()
   }
 }
