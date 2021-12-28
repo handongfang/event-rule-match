@@ -19,6 +19,7 @@ import java.util.Set;
 public class EventRuleCompareUtils {
     /**
      * 比较给定的事件是否与事件原子条件匹配，匹配触发条件的时候,会使用这个方法
+     *
      * @param event
      * @param eventCondition
      * @return
@@ -33,7 +34,7 @@ public class EventRuleCompareUtils {
             while (keysIterator.hasNext()) {
                 String key = keysIterator.next();
                 //规则条件中这个key对应的value
-                String  conditionValue = eventCondition.getEventProps().getOrDefault(key, "");
+                String conditionValue = eventCondition.getEventProps().getOrDefault(key, "");
 
                 if (!StringUtils.equals(conditionValue, event.getProperties().get(key))) {
                     //如果事件中某个属性与规则条件中相同key对应的属性值不同,则说明不匹配,需要跳出
