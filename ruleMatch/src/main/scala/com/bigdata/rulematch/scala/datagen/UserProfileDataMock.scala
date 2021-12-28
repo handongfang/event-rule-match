@@ -1,7 +1,7 @@
 package com.bigdata.rulematch.scala.datagen
 
-import com.bigdata.rulematch.scala.conf.EventRuleConstant
-import com.bigdata.rulematch.scala.utils.ConnectionUtils
+import com.bigdata.rulematch.scala.old.conf.EventRuleConstant
+import com.bigdata.rulematch.scala.old.utils.ConnectionUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.{HBaseConfiguration, TableName}
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory, Put}

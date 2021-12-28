@@ -3,9 +3,9 @@ package com.bigdata.rulematch.scala.datagen
 import java.sql.{Connection, DriverManager, PreparedStatement, ResultSet}
 
 import com.alibaba.fastjson.JSON
-import com.bigdata.rulematch.scala.bean.EventLogBean
-import com.bigdata.rulematch.scala.conf.EventRuleConstant
-import com.bigdata.rulematch.scala.utils.ConnectionUtils
+import com.bigdata.rulematch.scala.old.bean.EventLogBean
+import com.bigdata.rulematch.scala.old.conf.EventRuleConstant
+import com.bigdata.rulematch.scala.old.utils.ConnectionUtils
 import org.apache.commons.dbutils.DbUtils
 import org.apache.commons.lang3.StringUtils
 
