@@ -11,6 +11,7 @@ import com.alibaba.fastjson.JSON
  * @author Administrator
  * @version 1.0
  * @date 2021-12-18 23:10
+ *
  */
 object BeanTest {
   def main(args: Array[String]): Unit = {
@@ -21,7 +22,7 @@ object BeanTest {
     println(eventLogBean)
     println(eventLogBean.properties)
 
-    /*val jSONObject = JSON.parseObject(jsonStr)
+    val jSONObject = JSON.parseObject(jsonStr)
 
     val userId = jSONObject.getString("userId")
     val eventId = jSONObject.getString("eventId")
@@ -29,10 +30,11 @@ object BeanTest {
 
     import scala.collection.JavaConverters._
 
-    val properties: Map[String, String] = jSONObject.getJSONObject("properties").getInnerMap
-      .asInstanceOf[Map[String, String]]
+    val properties = jSONObject.getJSONObject("properties").getInnerMap
+      .asInstanceOf[util.Map[String, String]]
 
     val eventLogBean2 = EventLogBean(userId, eventId, timeStamp, properties)
-    println(eventLogBean2)*/
+    println(eventLogBean2)
   }
 }
+

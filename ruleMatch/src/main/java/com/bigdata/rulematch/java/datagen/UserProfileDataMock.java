@@ -1,7 +1,7 @@
 package com.bigdata.rulematch.java.datagen;
 
 import com.bigdata.rulematch.java.conf.EventRuleConstant;
-import com.bigdata.rulematch.scala.utils.ConnectionUtils;
+import com.bigdata.rulematch.java.utils.ConnectionUtils;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Put;
