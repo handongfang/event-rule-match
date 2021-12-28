@@ -40,10 +40,10 @@ public class RuleConditionEmulator {
         /**
          * 用户画像条件
          */
-        Map<String, Pair<String, String >> userProfileConditions = new HashMap<String, Pair<String, String > >();
-        userProfileConditions.put("sex", new Pair<String, String >(EventRuleConstant.OPERATOR_EQUEAL,"female"));
-        userProfileConditions.put("age", new Pair<String, String >(EventRuleConstant.OPERATOR_GREATER_EQUEAL,"18"));
-        userProfileConditions.put("age", new Pair<String, String >(EventRuleConstant.OPERATOR_LESS_EQUEAL,"30"));
+        Map<String, Pair<String, String>> userProfileConditions = new HashMap<String, Pair<String, String>>();
+        userProfileConditions.put("sex", new Pair<String, String>(EventRuleConstant.OPERATOR_EQUEAL, "female"));
+        userProfileConditions.put("age", new Pair<String, String>(EventRuleConstant.OPERATOR_GREATER_EQUEAL, "18"));
+        userProfileConditions.put("age", new Pair<String, String>(EventRuleConstant.OPERATOR_LESS_EQUEAL, "30"));
 
         /**
          * 多个事件次数条件列表  2021-12-10 00:00:00 至今, A商品加入购物车次数超过3次,A商品收藏次数大于5次
@@ -68,7 +68,7 @@ public class RuleConditionEmulator {
         ss.append(String.format("FROM %s \n", EventRuleConstant.CLICKHOUSE_TABLE_NAME));
         ss.append(String.format("WHERE %s = ? AND properties['productId'] = 'A' \n", keyByFields));
         ss.append(String.format("AND eventId = '%s' \n", EventRuleConstant.EVENT_ADD_CART));
-        ss.append(String.format("AND `timeStamp` BETWEEN %s AND %s", actionCountConditionStartTime, actionCountConditionEndTime));
+        ss.append("AND `timeStamp` BETWEEN ? AND ?");
 
         String actionCountQuerySql = ss.toString();
 
@@ -86,7 +86,7 @@ public class RuleConditionEmulator {
         ss.append(String.format("FROM %s \n", EventRuleConstant.CLICKHOUSE_TABLE_NAME));
         ss.append(String.format("WHERE %s = ? AND properties['productId'] = 'A' \n", keyByFields));
         ss.append(String.format("AND eventId = '%s' \n", EventRuleConstant.EVENT_COLLECT));
-        ss.append(String.format("AND `timeStamp` BETWEEN %s AND %s", actionCountConditionStartTime, actionCountConditionEndTime));
+        ss.append("AND `timeStamp` BETWEEN ? AND ?");
         actionCountQuerySql = ss.toString();
 
         Map<String, String> actionCountCondition2Map = new HashMap<String, String>();
@@ -158,9 +158,10 @@ public class RuleConditionEmulator {
                 "    toDateTime(`timeStamp`),\n");
         ss.append(String.format("    eventId = '%s' ,\n", EventRuleConstant.EVENT_PAGE_VIEW));
         ss.append(String.format("    eventId = '%s' \n", EventRuleConstant.EVENT_ADD_CART));
-        ss.append("    ) AS is_match1\n");
+        ss.append("    ) AS is_match1 \n");
         ss.append("FROM " + EventRuleConstant.CLICKHOUSE_TABLE_NAME + "\n");
-        ss.append(String.format("WHERE ${keyByFields} = ? AND `timeStamp` BETWEEN %s AND %s", actionSeqConditionStartTime, actionSeqConditionEndTime));
+        ss.append(String.format("WHERE %s = ? \n", keyByFields));
+        ss.append("AND `timeStamp` BETWEEN ? AND ? \n");
         ss.append("  AND (\n");
         ss.append(String.format("        (eventId='%s' AND properties['adId']='10')\n", EventRuleConstant.EVENT_PAGE_VIEW));
         ss.append("        OR\n");

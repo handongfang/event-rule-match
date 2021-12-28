@@ -13,8 +13,8 @@ package com.bigdata.rulematch.java.bean.rule;
  */
 public class EventSeqCondition {
 
-    public EventSeqCondition(Long timeRangeStart0L, Long timeRangeEnd, EventCondition[] eventSeqList, String actionSeqQuerySql) {
-        this.timeRangeStart0L = timeRangeStart0L;
+    public EventSeqCondition(Long timeRangeStart, Long timeRangeEnd, EventCondition[] eventSeqList, String actionSeqQuerySql) {
+        this.timeRangeStart = timeRangeStart;
         this.timeRangeEnd = timeRangeEnd;
         this.eventSeqList = eventSeqList;
         this.actionSeqQuerySql = actionSeqQuerySql;
@@ -23,7 +23,7 @@ public class EventSeqCondition {
     /**
      * 规则条件中的一个事件要求的发生时间段起始
      */
-    private Long timeRangeStart0L;
+    private Long timeRangeStart = 0L;
     /**
      * 规则条件中的一个事件要求的发生时间段终点
      */
@@ -37,12 +37,12 @@ public class EventSeqCondition {
      */
     private String actionSeqQuerySql;
 
-    public Long getTimeRangeStart0L() {
-        return timeRangeStart0L;
+    public Long getTimeRangeStart() {
+        return timeRangeStart;
     }
 
-    public void setTimeRangeStart0L(Long timeRangeStart0L) {
-        this.timeRangeStart0L = timeRangeStart0L;
+    public void setTimeRangeStart(Long timeRangeStart) {
+        this.timeRangeStart = timeRangeStart;
     }
 
     public Long getTimeRangeEnd() {

@@ -34,6 +34,20 @@ public class ClickHouseQueryServiceImpl {
      * @param eventCondition
      */
     public Long queryActionCountCondition(String keyByField, String keyByFieldValue, EventCondition eventCondition) throws SQLException {
+        return queryActionCountCondition(keyByField, keyByFieldValue, eventCondition, eventCondition.getTimeRangeStart(), eventCondition.getTimeRangeEnd());
+    }
+
+    /**
+     * 为配合跨界查询而添加的时间范围
+     *
+     * @param keyByField
+     * @param keyByFieldValue
+     * @param eventCondition
+     * @param queryTimeStart
+     * @param queryTimeEnd
+     * @return
+     */
+    public Long queryActionCountCondition(String keyByField, String keyByFieldValue, EventCondition eventCondition, Long queryTimeStart, Long queryTimeEnd) throws SQLException {
         logger.debug("CK收到一个行为次数类查询条件,keyByField:{}, keyByFieldValue: {}, 规则条件:{}", keyByField, keyByFieldValue, eventCondition);
 
         String querySqlStr = eventCondition.getActionCountQuerySql();
@@ -43,6 +57,8 @@ public class ClickHouseQueryServiceImpl {
         PreparedStatement pstmt = ckConn.prepareStatement(querySqlStr);
 
         pstmt.setString(1, keyByFieldValue);
+        pstmt.setLong(2, queryTimeStart);
+        pstmt.setLong(3, queryTimeEnd);
 
         ResultSet result = pstmt.executeQuery();
 
@@ -68,6 +84,21 @@ public class ClickHouseQueryServiceImpl {
      * @throws SQLException
      */
     public int queryActionSeqCondition(String keyByField, String keyByFieldValue, EventSeqCondition eventSeqCondition) throws SQLException {
+        return queryActionSeqCondition(keyByField, keyByFieldValue, eventSeqCondition, eventSeqCondition.getTimeRangeStart(), eventSeqCondition.getTimeRangeEnd());
+    }
+
+    /**
+     * 为配合跨界查询而添加的时间范围
+     *
+     * @param keyByField
+     * @param keyByFieldValue
+     * @param eventSeqCondition
+     * @param queryStartTime
+     * @param queryEndTime
+     * @return
+     * @throws SQLException
+     */
+    public int queryActionSeqCondition(String keyByField, String keyByFieldValue, EventSeqCondition eventSeqCondition, Long queryStartTime, Long queryEndTime) throws SQLException {
         logger.debug("CK收到一个行为次序类查询条件,keyByField:{}, keyByFieldValue: {}, 规则序列:{}", keyByField, keyByFieldValue, eventSeqCondition);
 
         String querySqlStr = eventSeqCondition.getActionSeqQuerySql();
@@ -77,6 +108,8 @@ public class ClickHouseQueryServiceImpl {
         PreparedStatement pstmt = ckConn.prepareStatement(querySqlStr);
 
         pstmt.setString(1, keyByFieldValue);
+        pstmt.setLong(2, queryStartTime);
+        pstmt.setLong(3, queryEndTime);
 
         ResultSet result = pstmt.executeQuery();
 

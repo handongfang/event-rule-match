@@ -15,12 +15,12 @@ import java.util.Date;
 public class CrossTimeQueryUtil {
     /**
      * 根据传入的查询时间点，获取一个查询分界点
-     * <p>
-     * 这个方法可以包装查询分界点不会一直变化，例如9:01到9:59得到的分界点都是8点
+     * 这个方法可以保证查询分界点不会一直变化，例如9:01到9:59得到的分界点都是8点
+     * 问题是能用到的状态数据时间范围减小。。。
      *
      * @param queryTimeStamp
      */
-    public Long getBoundPoint(Long queryTimeStamp) {
+    public static Long getBoundPoint(Long queryTimeStamp) {
 
         //时间按小时向上取整，比如9:15向上取整得到10点
         Date ceilDate = DateUtils.ceiling(new Date(queryTimeStamp), Calendar.HOUR);

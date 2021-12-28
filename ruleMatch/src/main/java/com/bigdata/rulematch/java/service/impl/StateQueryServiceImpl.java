@@ -24,9 +24,9 @@ public class StateQueryServiceImpl {
      * @param queryEndTime
      * @return
      */
-    public int stateQueryEventCount(ListState<EventLogBean> eventListState, EventCondition countCondition, Long queryStartTime, Long queryEndTime) throws Exception {
+    public Long stateQueryEventCount(ListState<EventLogBean> eventListState, EventCondition countCondition, Long queryStartTime, Long queryEndTime) throws Exception {
         //用于记录满足规则的事件个数
-        int matchCount = 0;
+        Long matchCount = 0L;
         Iterable<EventLogBean> eventLogBeanIterable = eventListState.get();
         for (EventLogBean eventLogBean : eventLogBeanIterable) {
             //判断遍历到的时间时间是否落在规则中要求的时间范围内
