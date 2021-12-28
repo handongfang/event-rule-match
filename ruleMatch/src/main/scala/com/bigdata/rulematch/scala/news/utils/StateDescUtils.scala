@@ -18,6 +18,13 @@ object StateDescUtils {
     val eventBeanListState = new ListStateDescriptor[EventLogBean]("eventBeanListState",
       createTypeInformation[EventLogBean])
 
+   /* val ttlConfig = StateTtlConfig
+      .newBuilder(Time.seconds(1))
+      //默认值：创建state和写入state的时候更新,默认值是 OnCreateAndWrite
+      .setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
+      .setStateVisibility(StateTtlConfig.StateVisibility.NeverReturnExpired)
+      .build*/
+
     //设置2小时有效
     val stateTtlConfig = StateTtlConfig.newBuilder(Time.hours(2)).build()
 
