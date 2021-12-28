@@ -97,21 +97,54 @@ public class RuleMatchRouter {
                 //从hbase中查询，并判断是否匹配
                 isMatch = hBaseQueryService.userProfileConditionIsMatch(eventLogBean.getUserId(), userProfileConditions);
 
-                //3, 行为次数类条件：A商品加入购物车次数超过3次,A商品收藏次数大于5次  （clickhouse）
+            } else {
+                logger.debug("没有设置用户画像规则类条件,继续向下匹配次数类条件");
+                isMatch = true;
+            }
+
+            //3, 行为次数类条件：A商品加入购物车次数超过3次,A商品收藏次数大于5次  （clickhouse）
+            if (isMatch) {
                 EventCondition[] actionCountConditionList = ruleCondition.getActionCountConditionList();
+                logger.debug("用户画像类条件满足或未设置用户画像条件,开始匹配行为次数类条件 ");
+                if (actionCountConditionList != null && actionCountConditionList.length > 0) {
+                    //只有设置了次数类条件,才去查询
+                    logger.debug(String.format("开始匹配行为次数类条件: %s", userProfileConditions));
+
+                    //从clickHouse中查询，并判断是否匹配
+                    for (EventCondition eventCondition : actionCountConditionList) {
+                        try {
+                            Long countMax = clickHouseQueryService.queryActionCountCondition(ruleCondition.getKeyByFields(), keyByFiedValue, eventCondition);
+                            if (countMax < eventCondition.getMinLimit() || countMax > eventCondition.getMaxLimit()) {
+                                isMatch = false;
+                                break;
+                            }
+                        } catch (SQLException throwables) {
+                            logger.debug("查询clickHouse出错: ", throwables);
+                            isMatch = false;
+                            break;
+                        }
+                    }
+
+                } else {
+                    logger.debug("没有设置行为次数类规则条件,继续向下匹配次序类条件");
+                    isMatch = true;
+                }
+
+                //4, 行为次序类条件: 用户依次浏览A页面->把B商品(商品Id为pd001)加入购物车->B商品提交订单   （clickhouse）
                 if (isMatch) {
-                    logger.debug("用户画像类条件满足,开始匹配行为次数类条件 ");
-                    if (actionCountConditionList != null && actionCountConditionList.length > 0) {
-                        //只有设置了次数类条件,才去查询
-                        logger.debug(String.format("开始匹配行为次数类条件: %s", userProfileConditions));
+                    EventSeqCondition[] actionSeqConditionList = ruleCondition.getActionSeqConditionList();
+                    logger.debug("行为次数类条件满足或未设置次数类条件,开始匹配行为次序类条件 ");
+                    if (actionSeqConditionList != null && actionSeqConditionList.length > 0) {
+                        //只有设置了次序类条件,才去查询
+                        Iterator<EventSeqCondition> iterator = Arrays.stream(actionSeqConditionList).iterator();
 
                         //从clickHouse中查询，并判断是否匹配
-                        for (EventCondition eventCondition : actionCountConditionList) {
+                        while (iterator.hasNext() && isMatch) {
+                            EventSeqCondition eventSeqCondition = iterator.next();
                             try {
-                                Long countMax = clickHouseQueryService.queryActionCountCondition(ruleCondition.getKeyByFields(), keyByFiedValue, eventCondition);
-                                if (countMax < eventCondition.getMinLimit() || countMax > eventCondition.getMaxLimit()) {
+                                int matchMax = clickHouseQueryService.queryActionSeqCondition(ruleCondition.getKeyByFields(), keyByFiedValue, eventSeqCondition);
+                                if (matchMax != eventSeqCondition.getEventSeqList().length) {
                                     isMatch = false;
-                                    break;
                                 }
                             } catch (SQLException throwables) {
                                 logger.debug("查询clickHouse出错: ", throwables);
@@ -120,50 +153,22 @@ public class RuleMatchRouter {
                             }
                         }
                     } else {
-                        logger.debug("没有设置行为次数类规则条件,继续向下匹配次序类条件");
+                        logger.debug("没有设置行为次序类规则条件,匹配已完成...");
+                        isMatch = true;
                     }
 
-                    //4, 行为次序类条件: 用户依次浏览A页面->把B商品(商品Id为pd001)加入购物车->B商品提交订单   （clickhouse）
-                    EventSeqCondition[] actionSeqConditionList = ruleCondition.getActionSeqConditionList();
-                    if (isMatch) {
-                        logger.debug("行为次数类条件满足,开始匹配行为次序类条件 ");
-                        if (actionSeqConditionList != null && actionSeqConditionList.length > 0) {
-                            //只有设置了次序类条件,才去查询
-                            Iterator<EventSeqCondition> iterator = Arrays.stream(actionSeqConditionList).iterator();
-
-                            //从clickHouse中查询，并判断是否匹配
-                            while (iterator.hasNext() && isMatch) {
-                                EventSeqCondition eventSeqCondition = iterator.next();
-                                try {
-                                    int matchMax = clickHouseQueryService.queryActionSeqCondition(ruleCondition.getKeyByFields(), keyByFiedValue, eventSeqCondition);
-                                    if (matchMax != eventSeqCondition.getEventSeqList().length) {
-                                        isMatch = false;
-                                    }
-                                } catch (SQLException throwables) {
-                                    logger.debug("查询clickHouse出错: ", throwables);
-                                    isMatch = false;
-                                    break;
-                                }
-                            }
-                        } else {
-                            logger.debug("没有设置行为次序类规则条件,匹配已完成...");
-                        }
-
-                        if (!isMatch) {
-                            //最终还是不满足
-                            logger.debug(String.format("不满足次序类规则条件: %s", actionSeqConditionList));
-                        }
-
-                    } else {
-                        logger.debug(String.format("不满足行为次数类条件: %s", actionCountConditionList.toString()));
+                    if (!isMatch) {
+                        //最终还是不满足
+                        logger.debug(String.format("不满足次序类规则条件: %s", ruleCondition.getActionSeqConditionList()));
                     }
 
                 } else {
-                    logger.debug(String.format("不满足用户画像类条件: %s", ruleCondition.getUserProfileConditions()));
+                    logger.debug(String.format("不满足行为次数类条件: %s", ruleCondition.getActionCountConditionList()));
                 }
 
             } else {
-                logger.debug("没有设置用户画像规则类条件,继续向下匹配次数类条件");
+                logger.debug(String.format("不满足用户画像类条件: %s", ruleCondition.getUserProfileConditions()));
+                isMatch = true;
             }
 
         } else {
