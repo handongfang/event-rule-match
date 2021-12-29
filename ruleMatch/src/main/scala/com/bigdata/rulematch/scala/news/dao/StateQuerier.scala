@@ -34,7 +34,7 @@ class StateQuerier {
    * @param queryRangeStart           查询时间范围起始
    * @param queryRangeEnd             查询时间范围结束
    */
-  private def getEventCombinationConditionStr(keyByField: String,
+  def getEventCombinationConditionStr(keyByField: String,
                                               keyByFieldValue: String,
                                               eventCombinationCondition: EventCombinationCondition,
                                               queryRangeStart: Long,

@@ -77,7 +77,7 @@ class HbaseQuerier {
    * @param queryValue
    * @return
    */
-  def compareUserTag(opt: String, optValue: String, queryValue: String) = {
+  private def compareUserTag(opt: String, optValue: String, queryValue: String) = {
     var isMatch = false
 
     val optVal = StringUtils.trim(optValue)
