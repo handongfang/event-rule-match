@@ -203,60 +203,61 @@ public class CrossTimeQueryRouter {
 
                         //开始根据查询分界点, 进行分段查询
                         while (iterator.hasNext() && isMatch) {
-                            /*EventSeqCondition eventSeqCondition = iterator.next();
+                            EventSeqCondition eventSeqCondition = iterator.next();
                             if (eventSeqCondition.getTimeRangeStart() >= queryBoundPoint) {
-                                Long matchCount = 0L;
+                                int maxStep = 0;
                                 try {
-                                    matchCount = stateQueryService.stateQueryEventSequence(eventListState, eventSeqCondition, eventSeqCondition.getTimeRangeStart(), eventSeqCondition.getTimeRangeEnd());
+                                    maxStep = stateQueryService.stateQueryEventSequence(eventListState, eventSeqCondition, eventSeqCondition.getTimeRangeStart(), eventSeqCondition.getTimeRangeEnd());
                                 } catch (Exception e) {
-                                    logger.error("状态查询事件次数类条件失败,容易造成判断错误,可以采取旁路输出: {}", e);
+                                    logger.error("状态查询事件次序类条件失败,容易造成判断错误,可以采取旁路输出: {}", e);
                                 }
 
-                                //比较是否满足次数范围
-                                if (matchCount < eventCondition.getMinLimit() || matchCount > eventCondition.getMaxLimit()) {
+                                //比较是否满足最大步骤
+                                if (maxStep != eventSeqCondition.getEventSeqList().length) {
                                     isMatch = false;
                                 }
-                            } else if (eventCondition.getTimeRangeEnd() <= queryBoundPoint) {
+                            } else if (eventSeqCondition.getTimeRangeEnd() <= queryBoundPoint) {
                                 //条件时间结束范围在查询分界点左侧,则只需要查询clickHouse
-                                Long queryCnt = null;
+                                int maxStep = 0;
                                 try {
-                                    queryCnt = clickHouseQueryService.queryActionCountCondition(ruleCondition.getKeyByFields(), keyByFiedValue, eventCondition);
+                                    maxStep = clickHouseQueryService.queryActionSeqCondition(ruleCondition.getKeyByFields(), keyByFiedValue, eventSeqCondition);
                                 } catch (SQLException throwables) {
                                     logger.error("clickHouse查询事件次数类条件失败,容易造成判断错误,可以采取旁路输出: {}", throwables);
                                 }
 
-                                //拿查询出来的行为次数与规则中要求的规则次数进行比较
-                                if (queryCnt < eventCondition.getMinLimit() || queryCnt > eventCondition.getMaxLimit()) {
+                                //比较是否满足最大步骤
+                                if (maxStep != eventSeqCondition.getEventSeqList().length) {
                                     isMatch = false;
                                 }
                             } else {
                                 //查询分界点在条件时间范围内,则开始跨界查询
                                 //先查flink state (分界点往后的查询state)
-                                Long matchCountInState = 0L;
+                                int maxStepInState = 0;
                                 try {
-                                    matchCountInState = stateQueryService.stateQueryEventCount(eventListState, eventCondition, queryBoundPoint, eventCondition.getTimeRangeEnd());
+                                    maxStepInState = stateQueryService.stateQueryEventSequence(eventListState, eventSeqCondition, queryBoundPoint, eventSeqCondition.getTimeRangeEnd());
                                 } catch (Exception e) {
                                     logger.error("状态查询事件次数类条件失败,容易造成判断错误,可以采取旁路输出: {}", e);
                                 }
 
-                                if (matchCountInState < eventCondition.getMinLimit() || matchCountInState > eventCondition.getMaxLimit()) {
+                                //比较是否满足最大步骤,不满足继续查找CK
+                                if (maxStepInState != eventSeqCondition.getEventSeqList().length) {
                                     //state中不满足,再查clickhouse  (分界点往前的查询state)
-                                    Long matchCountInCK = 0L;
+                                    int maxStepInCK = 0;
                                     try {
-                                        matchCountInCK = clickHouseQueryService.queryActionCountCondition(ruleCondition.getKeyByFields(), keyByFiedValue, eventCondition, eventCondition.getTimeRangeStart(), queryBoundPoint);
+                                        maxStepInCK = clickHouseQueryService.queryActionSeqCondition(ruleCondition.getKeyByFields(), keyByFiedValue, eventSeqCondition, eventSeqCondition.getTimeRangeStart(), queryBoundPoint);
                                     } catch (SQLException throwables) {
                                         logger.error("clickHouse查询事件次数类条件失败,容易造成判断错误,可以采取旁路输出: {}", throwables);
                                     }
 
                                     //比较最终结果
-                                    Long matchCount = matchCountInState + matchCountInCK;
-                                    if (matchCount < eventCondition.getMinLimit() || matchCount > eventCondition.getMaxLimit()) {
+                                    int maxStep = maxStepInState + maxStepInCK;
+                                    if (maxStep != eventSeqCondition.getEventSeqList().length) {
                                         isMatch = false;
                                     }
 
                                 }
-                            }*/
-                            /*try {
+                            }
+                           /* try {
                                 int matchMax = clickHouseQueryService.queryActionSeqCondition(ruleCondition.getKeyByFields(), keyByFiedValue, eventSeqCondition);
                                 if (matchMax != eventSeqCondition.getEventSeqList().length) {
                                     isMatch = false;

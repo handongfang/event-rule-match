@@ -2,6 +2,7 @@ package com.bigdata.rulematch.java.service.impl;
 
 import com.bigdata.rulematch.java.bean.EventLogBean;
 import com.bigdata.rulematch.java.bean.rule.EventCondition;
+import com.bigdata.rulematch.java.bean.rule.EventSeqCondition;
 import com.bigdata.rulematch.java.utils.EventRuleCompareUtils;
 import org.apache.flink.api.common.state.ListState;
 
@@ -45,15 +46,16 @@ public class StateQueryServiceImpl {
      * 从flink状态List中查询给定的行为次序类规则最大满足到了第几步
      *
      * @param eventListState
-     * @param eventSeqList
+     * @param eventSeqCondition
      * @param queryStartTime
      * @param queryEndTime
      * @return
      */
-    public int stateQueryEventSequence(ListState<EventLogBean> eventListState, EventCondition[] eventSeqList, Long queryStartTime, Long queryEndTime) throws Exception {
+    public int stateQueryEventSequence(ListState<EventLogBean> eventListState, EventSeqCondition eventSeqCondition, Long queryStartTime, Long queryEndTime) throws Exception {
         int maxStep = 0;
 
         Iterable<EventLogBean> eventLogBeanIterable = eventListState.get();
+        EventCondition[] eventSeqList = eventSeqCondition.getEventSeqList();
 
         for (EventLogBean eventLogBean : eventLogBeanIterable) {
             //判断遍历到的时间时间是否落在规则中要求的时间范围内
