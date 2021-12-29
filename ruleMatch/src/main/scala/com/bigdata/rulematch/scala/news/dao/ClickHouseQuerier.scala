@@ -1,9 +1,9 @@
 package com.bigdata.rulematch.scala.news.dao
 
 import java.sql.{Connection, PreparedStatement, ResultSet}
-import java.util.regex.Pattern
 
 import com.bigdata.rulematch.scala.news.beans.rule.EventCombinationCondition
+import com.bigdata.rulematch.scala.news.utils.EventUtil
 import org.slf4j.{Logger, LoggerFactory}
 
 /**
@@ -85,15 +85,7 @@ class ClickHouseQuerier {
     //取出组合条件中的正则表达式
     val matchPattern = eventCombinationCondition.matchPattern
 
-    //匹配正则表达式，得到匹配的次数
-    val pattern = Pattern.compile(matchPattern)
-
-    val matcher = pattern.matcher(eventIndexSeqStr)
-
-    var matchCount = 0
-    while (matcher.find()) {
-      matchCount += 1
-    }
+    val matchCount = EventUtil.sequenceStrMatchRegexCount(eventIndexSeqStr, matchPattern)
 
     matchCount
   }
