@@ -15,6 +15,16 @@ import org.apache.commons.lang3.time.DateUtils
 object RuleConditionEmulator {
 
   /**
+   * 获取多个规则
+   * @return
+   */
+  def getRuleConditionArray() = {
+    val ruleCondition: MatchRule = getRuleConditions
+
+    Array[MatchRule](ruleCondition)
+  }
+
+  /**
    * 获取一个规则
    */
   def getRuleConditions() = {

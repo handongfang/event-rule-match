@@ -66,6 +66,8 @@ object EventRuleMatchJob {
 
     matchRuleDS.print("matchRuleDS")
 
+    //实际应该 sink 到kafka, 这一步很简单, 就不写了
+
     env.execute(this.getClass.getSimpleName.stripSuffix("$"))
   }
 }
