@@ -75,6 +75,6 @@ class RuleMatchKeyedProcessFunction extends KeyedProcessFunction[String, EventLo
 
   override def close(): Unit = {
     //关闭连接
-    //queryRouter.closeConnection()
+    triggerModelRuleMatchController.closeConnection()
   }
 }

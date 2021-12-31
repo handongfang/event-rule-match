@@ -69,4 +69,10 @@ class TriggerModelRuleMatchController {
     isMatch
   }
 
+  /**
+   * 关闭程序中使用的各种连接对象
+   */
+  def closeConnection() = {
+    triggerModeRuleMatchService.closeConnection()
+  }
 }

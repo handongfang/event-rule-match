@@ -4,6 +4,7 @@ import java.sql.{Connection, PreparedStatement, ResultSet}
 
 import com.bigdata.rulematch.scala.news.beans.rule.EventCombinationCondition
 import com.bigdata.rulematch.scala.news.utils.EventUtil
+import org.apache.commons.dbutils.DbUtils
 import org.slf4j.{Logger, LoggerFactory}
 
 /**
@@ -88,5 +89,13 @@ class ClickHouseQuerier {
     val matchCount = EventUtil.sequenceStrMatchRegexCount(eventIndexSeqStr, matchPattern)
 
     matchCount
+  }
+
+  /**
+   * 关闭 clickhouse 连接
+   * @return
+   */
+  def closeConnection() = {
+    DbUtils.close(ckConn)
   }
 }

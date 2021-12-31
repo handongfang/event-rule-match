@@ -1,6 +1,7 @@
 package com.bigdata.rulematch.scala.news.dao
 
 import com.bigdata.rulematch.scala.news.conf.EventRuleConstant
+import org.apache.commons.dbutils.DbUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.{Connection, Get}
@@ -162,5 +163,19 @@ class HbaseQuerier {
     }
 
     isMatch
+  }
+
+  /**
+   * 关闭hbase连接
+   * @return
+   */
+  def closeConnection() = {
+    if(hbaseConn != null){
+      try {
+        hbaseConn.close()
+      } catch {
+        case _ =>
+      }
+    }
   }
 }
