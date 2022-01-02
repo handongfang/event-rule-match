@@ -47,7 +47,8 @@ object EventUtil {
         //规则条件中这个key对应的value
         val conditionValue = eventCondition.eventProps.getOrElse(key, "")
 
-        if (!StringUtils.equals(conditionValue, event.properties.get(key))) {
+        if (event.properties != null && event.properties.size() > 0 &&
+           !StringUtils.equals(conditionValue, event.properties.get(key))) {
           //如果事件中某个属性与规则条件中相同key对应的属性值不同,则说明不匹配,需要跳出
           isMatch = false
         }
