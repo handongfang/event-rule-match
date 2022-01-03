@@ -69,6 +69,7 @@ object RuleConditionEmulator {
          |WHERE ${keyByFields} = ? AND properties['productId'] = 'A'
          | AND eventId = '${EventRuleConstant.EVENT_ADD_CART}'
          | AND `timeStamp` BETWEEN ? AND ?
+         | ORDER BY `timeStamp`
          |""".stripMargin
 
     var matchPattern = "(1)"
@@ -119,6 +120,7 @@ object RuleConditionEmulator {
          |        OR
          |        (eventId = '${EventRuleConstant.EVENT_ORDER_SUBMIT}' AND properties['productId']='B')
          |    )
+         | ORDER BY `timeStamp`
          |""".stripMargin
 
     //用于匹配的模式
