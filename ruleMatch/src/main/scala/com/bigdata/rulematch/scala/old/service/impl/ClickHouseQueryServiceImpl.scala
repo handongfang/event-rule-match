@@ -29,10 +29,11 @@ class ClickHouseQueryServiceImpl {
    */
   def queryActionCountCondition(keyByField: String,
                                 keyByFieldValue: String,
-                                eventCondition: EventCondition) = {
+                                eventCondition: EventCondition): Long = {
 
     queryActionCountCondition(keyByField, keyByFieldValue, eventCondition,
       eventCondition.timeRangeStart, eventCondition.timeRangeEnd)
+
 
   }
 
@@ -40,7 +41,7 @@ class ClickHouseQueryServiceImpl {
                                 keyByFieldValue: String,
                                 eventCondition: EventCondition,
                                 queryTimeStart: Long,
-                                queryTimeEnd: Long) = {
+                                queryTimeEnd: Long): Long = {
 
     logger.debug("CK收到一个行为次数类查询条件,keyByField:{}, keyByFieldValue: {}, 规则条件:{}", keyByField, keyByFieldValue, eventCondition)
 
@@ -81,7 +82,7 @@ class ClickHouseQueryServiceImpl {
    */
   def queryActionSeqCondition(keyByField: String,
                                 keyByFieldValue: String,
-                                eventSeqCondition: EventSeqCondition) = {
+                                eventSeqCondition: EventSeqCondition): Int = {
 
     queryActionSeqCondition(keyByField, keyByFieldValue, eventSeqCondition,
       eventSeqCondition.timeRangeStart, eventSeqCondition.timeRangeEnd)
@@ -101,7 +102,7 @@ class ClickHouseQueryServiceImpl {
                               keyByFieldValue: String,
                               eventSeqCondition: EventSeqCondition,
                               queryTimeStart: Long,
-                              queryTimeEnd: Long) = {
+                              queryTimeEnd: Long): Int = {
     logger.debug("CK收到一个行为次序类查询条件,keyByField:{}, keyByFieldValue: {}, 规则条件:{}", keyByField, keyByFieldValue, eventSeqCondition)
 
     val querySqlStr = eventSeqCondition.actionSeqQuerySql

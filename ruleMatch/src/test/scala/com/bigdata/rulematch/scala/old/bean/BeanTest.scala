@@ -29,11 +29,11 @@ object BeanTest {
 
     import scala.collection.JavaConverters._
 
-    val properties = jSONObject.getJSONObject("properties").getInnerMap
+   /* val properties = jSONObject.getJSONObject("properties").getInnerMap
       .asInstanceOf[util.Map[String, String]]
 
     val eventLogBean2 = EventLogBean(userId, eventId, timeStamp, properties)
-    println(eventLogBean2)
+    println(eventLogBean2)*/
   }
 }
 

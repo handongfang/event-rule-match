@@ -170,7 +170,7 @@ object UserProfileQueryService {
           logger.error(s"规则中要求的数值 ${optVal} 或者 查询结果中的数值: ${queryValue} 不是数字类型, 不支持的比较类型: ${opt}")
         }
       }
-      case EventRuleConstant.OPERATOR_LESSTHAN_EQUEAL => {
+      case EventRuleConstant.OPERATOR_LESS_EQUEAL => {
         if(optValIsNumber){
 
           if(queryValue <= optVal) {
