@@ -1,5 +1,7 @@
-package com.bigdata.rulematch.java.old.bean.rule;
+package com.bigdata.rulematch.java.news.beans.rule;
 
+import com.bigdata.rulematch.java.news.beans.rule.EventCombinationCondition;
+import com.bigdata.rulematch.java.news.beans.rule.EventCondition;
 import org.apache.commons.math3.util.Pair;
 
 import java.util.Map;
@@ -11,7 +13,28 @@ import java.util.Map;
  * @version 1.0
  * @create 2021-12-21  12:04
  */
-public class RuleConditionV2 {
+public class RuleCondition {
+    /**
+     * 初始化
+     *
+     * @param ruleId
+     * @param keyByFields
+     * @param triggerEventCondition
+     * @param userProfileConditions
+     * @param eventCombinationConditionList
+     * @param matchLimit
+     * @param onTimer
+     */
+    public RuleCondition(String ruleId, String keyByFields, EventCondition triggerEventCondition, Map<String, Pair<String, String>> userProfileConditions, EventCombinationCondition[] eventCombinationConditionList, int matchLimit, boolean onTimer) {
+        this.ruleId = ruleId;
+        this.keyByFields = keyByFields;
+        this.triggerEventCondition = triggerEventCondition;
+        this.userProfileConditions = userProfileConditions;
+        this.eventCombinationConditionList = eventCombinationConditionList;
+        this.matchLimit = matchLimit;
+        this.onTimer = onTimer;
+    }
+
     /**
      * 初始化
      *
@@ -21,7 +44,7 @@ public class RuleConditionV2 {
      * @param userProfileConditions
      * @param eventCombinationConditionList
      */
-    public RuleConditionV2(String ruleId, String keyByFields, EventCondition triggerEventCondition, Map<String, Pair<String, String>> userProfileConditions, EventCombinationCondition[] eventCombinationConditionList) {
+    public RuleCondition(String ruleId, String keyByFields, EventCondition triggerEventCondition, Map<String, Pair<String, String>> userProfileConditions, EventCombinationCondition[] eventCombinationConditionList) {
         this.ruleId = ruleId;
         this.keyByFields = keyByFields;
         this.triggerEventCondition = triggerEventCondition;
@@ -49,6 +72,15 @@ public class RuleConditionV2 {
      * 行为组合条件
      */
     private EventCombinationCondition[] eventCombinationConditionList;
+    /**
+     * 规则匹配推送次数限制
+     */
+    private int matchLimit = 0;
+    /**
+     * 是否要注册timer
+     */
+    private boolean onTimer = false;
+
 
     public String getRuleId() {
         return ruleId;
@@ -88,5 +120,21 @@ public class RuleConditionV2 {
 
     public void setEventCombinationConditionList(EventCombinationCondition[] eventCombinationConditionList) {
         this.eventCombinationConditionList = eventCombinationConditionList;
+    }
+
+    public int getMatchLimit() {
+        return matchLimit;
+    }
+
+    public void setMatchLimit(int matchLimit) {
+        this.matchLimit = matchLimit;
+    }
+
+    public boolean isOnTimer() {
+        return onTimer;
+    }
+
+    public void setOnTimer(boolean onTimer) {
+        this.onTimer = onTimer;
     }
 }

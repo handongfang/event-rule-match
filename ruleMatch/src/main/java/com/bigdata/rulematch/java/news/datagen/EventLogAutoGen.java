@@ -1,10 +1,11 @@
-package com.bigdata.rulematch.java.old.datagen;
+package com.bigdata.rulematch.java.news.datagen;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.bigdata.rulematch.java.old.bean.EventLogBean;
-import com.bigdata.rulematch.java.old.conf.EventRuleConstant;
-import com.bigdata.rulematch.java.old.job.EventRuleMatchV1;
+import com.bigdata.rulematch.java.news.beans.EventLogBean;
+import com.bigdata.rulematch.java.news.conf.EventRuleConstant;
+import com.bigdata.rulematch.java.news.datagen.ClickHouseDataMock;
+import com.bigdata.rulematch.java.news.job.EventRuleMatch;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -58,6 +59,6 @@ public class EventLogAutoGen {
 
         System.out.println(String.format("发送到kafka的数据: %s", message));
 
-        kafkaProducer.send(new ProducerRecord<String, String>(EventRuleMatchV1.consumerTopics, message));
+        kafkaProducer.send(new ProducerRecord<String, String>(EventRuleMatch.consumerTopics, message));
     }
 }

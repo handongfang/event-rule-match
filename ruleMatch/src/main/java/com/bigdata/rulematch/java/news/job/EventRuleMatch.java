@@ -1,27 +1,29 @@
-package com.bigdata.rulematch.java.old.job;
+package com.bigdata.rulematch.java.news.job;
 
-import com.bigdata.rulematch.java.old.bean.EventLogBean;
-import com.bigdata.rulematch.java.old.bean.RuleMatchResult;
-import com.bigdata.rulematch.java.old.function.EventJSONToBeanFlatMapFunction;
-import com.bigdata.rulematch.java.old.function.RuleMatchKeyedProcessFunctionV2;
-import com.bigdata.rulematch.java.old.source.KafkaSourceFactory;
+import com.bigdata.rulematch.java.news.beans.EventLogBean;
+import com.bigdata.rulematch.java.news.beans.RuleMatchResult;
+import com.bigdata.rulematch.java.news.functions.EventJSONToBeanFlatMapFunction;
+import com.bigdata.rulematch.java.news.functions.RuleMatchKeyedProcessFunction;
+import com.bigdata.rulematch.java.news.source.KafkaSourceFactory;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 基于规则的封装处理
+ * 基于事件的静态规则匹配Java版本
  *
- * @author HanDongfang
+ * @author Administrator
  * @version 1.0
- * @create 2021-12-22  12:20
+ * @date 2021-12-18 17:55
  */
-public class EventRuleMatchV2 {
+public class EventRuleMatch {
     private Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
     private static String checkpointDataUri = "";
@@ -34,7 +36,15 @@ public class EventRuleMatchV2 {
 
     public static void main(String[] args) throws Exception {
         //1.创建执行的环境
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        /*if(isLocal){
+            StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(new Configuration());
+        }else {
+            StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        }*/
+        StreamExecutionEnvironment env = isLocal ? StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(new Configuration()) : StreamExecutionEnvironment.getExecutionEnvironment();
+
+        //为了便于观察,把并行度设置为1
+        env.setParallelism(1);
 
         // Checking input parameters
         ParameterTool params = ParameterTool.fromArgs(args);
@@ -56,11 +66,11 @@ public class EventRuleMatchV2 {
         //eventLogBeanDS.print()
 
         //因为规则匹配是针对每个用户，kyBY后单独继续匹配的
-        KeyedStream<EventLogBean, String> keyedDS = eventLogBeanDS.keyBy(bean -> bean.getUserId());
+        KeyedStream<EventLogBean, String> keyedDS = eventLogBeanDS.keyBy(eventLogBean -> eventLogBean.getUserId());
 
-        DataStream<RuleMatchResult> matchRuleDS = keyedDS.process(new RuleMatchKeyedProcessFunctionV2());
+        keyedDS.process(new RuleMatchKeyedProcessFunction());
 
-        matchRuleDS.print("matchRuleDS");
+        //matchRuleDS.print("matchRuleDS");
 
         env.execute("EventRuleMatchV1");
     }

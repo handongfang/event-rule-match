@@ -1,17 +1,15 @@
-package com.bigdata.rulematch.java.old.datagen;
+package com.bigdata.rulematch.java.news.datagen;
 
-import com.bigdata.rulematch.java.old.bean.rule.EventCondition;
-import com.bigdata.rulematch.java.old.bean.rule.EventSeqCondition;
-import com.bigdata.rulematch.java.old.bean.rule.RuleCondition;
-import com.bigdata.rulematch.java.old.conf.EventRuleConstant;
+import com.bigdata.rulematch.java.news.beans.rule.EventCondition;
+import com.bigdata.rulematch.java.news.beans.rule.EventCombinationCondition;
+import com.bigdata.rulematch.java.news.beans.rule.RuleCondition;
+import com.bigdata.rulematch.java.news.conf.EventRuleConstant;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.math3.util.Pair;
 
 import java.text.ParseException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 规则条件模拟
@@ -22,7 +20,27 @@ import java.util.Map;
  */
 public class RuleConditionEmulator {
     /**
+     * 获取多个规则
+     *
+     * @param envetTimeStamp
+     * @return
+     * @throws ParseException
+     */
+    public static RuleCondition[] getRuleConditionArray(Long envetTimeStamp) throws ParseException {
+
+        RuleCondition ruleCondition = getRuleConditions(envetTimeStamp);
+
+        RuleCondition[] ruleConditions = {ruleCondition};
+
+        return ruleConditions;
+    }
+
+    /**
      * 获取一个规则
+     *
+     * @param envetTimeStamp
+     * @return
+     * @throws ParseException
      */
     public static RuleCondition getRuleConditions(Long envetTimeStamp) throws ParseException {
 
@@ -46,7 +64,8 @@ public class RuleConditionEmulator {
         userProfileConditions.put("age", new Pair<String, String>(EventRuleConstant.OPERATOR_LESS_EQUEAL, "30"));
 
         /**
-         * 多个事件次数条件列表  2021-12-10 00:00:00 至今, A商品加入购物车次数超过3次,A商品收藏次数大于5次
+         * 多个事件次数条件列表  2021-12-10 00:00:00 至今, A商品加入购物车次数大于等于3次,A商品收藏次数大于等于5次
+         * 次数主要设置到组合条件里面,迎合次序条件模式匹配事件次数问题
          */
         //配置条件属性
         String actionCountConditionStartTimeStr = "2021-12-10 00:00:00";
@@ -60,47 +79,66 @@ public class RuleConditionEmulator {
         Long actionCountConditionStartTime = DateUtils.parseDate(actionCountConditionStartTimeStr, "yyyy-MM-dd HH:mm:ss").getTime();
         Long actionCountConditionEndTime = DateUtils.parseDate(actionCountConditionEndTimeStr, "yyyy-MM-dd HH:mm:ss").getTime();
 
-        /**
-         * 构建购物车次事件次数查询语句
-         */
-        StringBuilder ss = new StringBuilder();
-        ss.append("SELECT count(1) AS cnt\n");
-        ss.append(String.format("FROM %s \n", EventRuleConstant.CLICKHOUSE_TABLE_NAME));
-        ss.append(String.format("WHERE %s = ? AND properties['productId'] = 'A' \n", keyByFields));
-        ss.append(String.format("AND eventId = '%s' \n", EventRuleConstant.EVENT_ADD_CART));
-        ss.append("AND `timeStamp` BETWEEN ? AND ?");
-
-        String actionCountQuerySql = ss.toString();
-
         Map<String, String> actionCountCondition1Map = new HashMap<String, String>();
         actionCountCondition1Map.put("productId", "A");
         //生成加入购物车次数事件条件
         EventCondition actionCountCondition1 = new EventCondition(EventRuleConstant.EVENT_ADD_CART,
-                actionCountCondition1Map, actionCountConditionStartTime, actionCountConditionEndTime, 3, Integer.MAX_VALUE, actionCountQuerySql);
+                actionCountCondition1Map, actionCountConditionStartTime, actionCountConditionEndTime, 3, Integer.MAX_VALUE);
+
+        //单个事件次数条件列表
+        EventCondition[] eventConditionList1 = new EventCondition[]{actionCountCondition1};
 
         /**
-         * 构建收藏事件次数查询语句
+         * 构建购物车事件次数查询语句
          */
-        ss.delete(0, ss.length());
-        ss.append("SELECT count(1) AS cnt\n");
+        StringBuilder ss = new StringBuilder();
+        ss.append("SELECT eventId \n");
         ss.append(String.format("FROM %s \n", EventRuleConstant.CLICKHOUSE_TABLE_NAME));
         ss.append(String.format("WHERE %s = ? AND properties['productId'] = 'A' \n", keyByFields));
-        ss.append(String.format("AND eventId = '%s' \n", EventRuleConstant.EVENT_COLLECT));
-        ss.append("AND `timeStamp` BETWEEN ? AND ?");
-        actionCountQuerySql = ss.toString();
+        ss.append(String.format("AND eventId = '%s' \n", EventRuleConstant.EVENT_ADD_CART));
+        ss.append("AND `timeStamp` BETWEEN ? AND ? \n");
+        ss.append("ORDER BY `timeStamp`");
+
+        String actionCountQuerySql = ss.toString();
+        //匹配模式
+        String matchPattern1 = "(1)";
+
+        //构建事件组合条件1
+        EventCombinationCondition eventCombinationCondition1 = new EventCombinationCondition(actionCountConditionStartTime, actionCountConditionEndTime, 3, Integer.MAX_VALUE,
+                eventConditionList1, matchPattern1, "ck", actionCountQuerySql, "1001");
 
         Map<String, String> actionCountCondition2Map = new HashMap<String, String>();
         actionCountCondition2Map.put("productId", "A");
         //生成收藏次数事件条件
         EventCondition actionCountCondition2 = new EventCondition(EventRuleConstant.EVENT_COLLECT,
-                actionCountCondition2Map, actionCountConditionStartTime, actionCountConditionEndTime, 5, Integer.MAX_VALUE, actionCountQuerySql);
+                actionCountCondition2Map, actionCountConditionStartTime, actionCountConditionEndTime, 5, Integer.MAX_VALUE);
 
-        //多个事件次数条件列表
-        EventCondition[] actionCountConditionList = new EventCondition[]{actionCountCondition1, actionCountCondition2};
+        //单个事件次数条件列表
+        EventCondition[] eventConditionList2 = new EventCondition[]{actionCountCondition2};
+
+        /**
+         * 构建收藏事件次数查询语句
+         */
+        ss.delete(0, ss.length());
+        ss.append("SELECT eventId \n");
+        ss.append(String.format("FROM %s \n", EventRuleConstant.CLICKHOUSE_TABLE_NAME));
+        ss.append(String.format("WHERE %s = ? AND properties['productId'] = 'A' \n", keyByFields));
+        ss.append(String.format("AND eventId = '%s' \n", EventRuleConstant.EVENT_COLLECT));
+        ss.append("AND `timeStamp` BETWEEN ? AND ? \n");
+        ss.append("ORDER BY `timeStamp`");
+
+        actionCountQuerySql = ss.toString();
+        //匹配模式
+        String matchPattern2 = "(1)";
+
+        //构建事件组合条件2
+        EventCombinationCondition eventCombinationCondition2 = new EventCombinationCondition(actionCountConditionStartTime, actionCountConditionEndTime, 5, Integer.MAX_VALUE,
+                eventConditionList2, matchPattern2, "ck", actionCountQuerySql, "1002");
 
 
         /**
          * 行为次序类条件列表 2021-12-18 00:00:00 至今, 用户依次浏览A页面->把B商品(商品Id为B)加入购物车->B商品提交订单
+         * 组合条件次数范围表示该次序条件出现次数
          */
         //配置条件属性
         String actionSeqConditionStartTimeStr = "2021-12-18 00:00:00";
@@ -120,45 +158,28 @@ public class RuleConditionEmulator {
         actionSeqCondition1Map.put("pageId", "A");
         //生成浏览页面事件条件
         EventCondition actionSeqCondition1 = new EventCondition(EventRuleConstant.EVENT_PAGE_VIEW,
-                actionSeqCondition1Map, actionSeqConditionStartTime, actionSeqConditionEndTime);
+                actionSeqCondition1Map, actionSeqConditionStartTime, actionSeqConditionEndTime, 1, Integer.MAX_VALUE);
 
         Map<String, String> actionSeqCondition2Map = new HashMap<String, String>();
         actionSeqCondition2Map.put("productId", "B");
         //生成加入购物车事件条件
         EventCondition actionSeqCondition2 = new EventCondition(EventRuleConstant.EVENT_ADD_CART,
-                actionSeqCondition2Map, actionSeqConditionStartTime, actionSeqConditionEndTime);
+                actionSeqCondition2Map, actionSeqConditionStartTime, actionSeqConditionEndTime, 1, Integer.MAX_VALUE);
 
         Map<String, String> actionSeqCondition3Map = new HashMap<String, String>();
         actionSeqCondition3Map.put("productId", "B");
         //生成提交订单事件条件
         EventCondition actionSeqCondition3 = new EventCondition(EventRuleConstant.EVENT_ORDER_SUBMIT,
-                actionSeqCondition3Map, actionSeqConditionStartTime, actionSeqConditionEndTime);
+                actionSeqCondition3Map, actionSeqConditionStartTime, actionSeqConditionEndTime, 1, Integer.MAX_VALUE);
 
-        //多个事件次序条件列表
-        EventCondition[] eventSeqList = new EventCondition[]{actionSeqCondition1, actionSeqCondition2, actionSeqCondition3};
+        //多个事件次序条件列表3
+        EventCondition[] eventConditionList3 = new EventCondition[]{actionSeqCondition1, actionSeqCondition2, actionSeqCondition3};
 
         /**
          * 构建事件次序查询语句
          */
         ss.delete(0, ss.length());
-        ss.append("SELECT\n" +
-                "    userId,\n" +
-                "    sequenceMatch('.*(?1).*(?2).*(?3)')(\n" +
-                "    toDateTime(`timeStamp`),\n");
-        ss.append(String.format("    eventId = '%s' ,\n", EventRuleConstant.EVENT_PAGE_VIEW));
-        ss.append(String.format("    eventId = '%s' ,\n", EventRuleConstant.EVENT_ADD_CART));
-        ss.append(String.format("    eventId = '%s' \n", EventRuleConstant.EVENT_ORDER_SUBMIT));
-        ss.append("  ) AS is_match3,\n");
-        ss.append("  sequenceMatch('.*(?1).*(?2)')(\n" +
-                "    toDateTime(`timeStamp`),\n");
-        ss.append(String.format("    eventId = '%s' ,\n", EventRuleConstant.EVENT_PAGE_VIEW));
-        ss.append(String.format("    eventId = '%s' \n", EventRuleConstant.EVENT_ADD_CART));
-        ss.append("  ) AS is_match2,\n" +
-                " sequenceMatch('.*(?1).*')(\n" +
-                "    toDateTime(`timeStamp`),\n");
-        ss.append(String.format("    eventId = '%s' ,\n", EventRuleConstant.EVENT_PAGE_VIEW));
-        ss.append(String.format("    eventId = '%s' \n", EventRuleConstant.EVENT_ADD_CART));
-        ss.append("    ) AS is_match1 \n");
+        ss.append("SELECT eventId \n");
         ss.append("FROM " + EventRuleConstant.CLICKHOUSE_TABLE_NAME + "\n");
         ss.append(String.format("WHERE %s = ? AND `timeStamp` BETWEEN ? AND ? \n", keyByFields));
         ss.append("  AND ( \n");
@@ -172,16 +193,19 @@ public class RuleConditionEmulator {
 
         String actionSeqQuerySql = ss.toString();
 
-        //生成多事件次序条件
-        EventSeqCondition eventSeqCondition1 = new EventSeqCondition(actionSeqConditionStartTime, actionSeqConditionEndTime, eventSeqList, actionSeqQuerySql);
+        //用于匹配的模式
+        String matchPattern3 = "(1.*2.*3)";
 
-        //生成多序列条件
-        EventSeqCondition[] actionSeqConditionList = new EventSeqCondition[]{eventSeqCondition1};
+        //构建事件组合条件3
+        EventCombinationCondition eventCombinationCondition3 = new EventCombinationCondition(actionSeqConditionStartTime, actionSeqConditionEndTime, 1, Integer.MAX_VALUE,
+                eventConditionList2, matchPattern3, "ck", actionSeqQuerySql, "1003");
 
+
+        //构建事件组合条件列表
+        EventCombinationCondition[] eventCombinationConditionList = new EventCombinationCondition[]{eventCombinationCondition1, eventCombinationCondition2, eventCombinationCondition3};
         /**
          * 封装条件作为规则并返回
          */
-        return new RuleCondition(ruleId, keyByFields, triggerCondition, userProfileConditions,
-                actionCountConditionList, actionSeqConditionList);
+        return new RuleCondition(ruleId, keyByFields, triggerCondition, userProfileConditions, eventCombinationConditionList);
     }
 }
