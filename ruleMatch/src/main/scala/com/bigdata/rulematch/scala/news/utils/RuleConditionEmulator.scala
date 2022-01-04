@@ -75,11 +75,11 @@ object RuleConditionEmulator {
     var matchPattern = "(1)"
 
     val actionCountCondition1: EventCondition = EventCondition(EventRuleConstant.EVENT_ADD_CART,
-      actionCountCondition1Map, actionCountConditionStartTime, actionCountConditionEndTime, 3,
+      actionCountCondition1Map, actionCountConditionStartTime, actionCountConditionEndTime, 1,
       Int.MaxValue)
 
     //构建事件组合条件
-    val combinationCondition1 = EventCombinationCondition(actionCountConditionStartTime, actionCountConditionEndTime, 1, Int.MaxValue,
+    val combinationCondition1 = EventCombinationCondition(actionCountConditionStartTime, actionCountConditionEndTime, 3, Int.MaxValue,
       List[EventCondition](actionCountCondition1), matchPattern, "ck", actionCountQuerySql, "1001")
 
     //行为组合条件 2021-12-18 00:00:00 至今, 用户依次浏览A页面->把B商品(商品Id为B)加入购物车->B商品提交订单
