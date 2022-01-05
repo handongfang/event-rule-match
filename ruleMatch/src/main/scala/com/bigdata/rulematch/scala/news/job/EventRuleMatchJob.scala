@@ -1,9 +1,11 @@
 package com.bigdata.rulematch.scala.news.job
 
+import java.time.Duration
+
 import com.bigdata.rulematch.scala.news.beans.EventLogBean
 import com.bigdata.rulematch.scala.news.functions.{EventJSONToBeanFlatMapFunction, RuleMatchKeyedProcessFunction}
 import com.bigdata.rulematch.scala.news.source.KafkaSourceFactory
-import org.apache.flink.api.common.eventtime.WatermarkStrategy
+import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, WatermarkStrategy}
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.connector.kafka.source.KafkaSource
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment, _}
@@ -57,10 +59,20 @@ object EventRuleMatchJob {
     //将JSON转换为 EventLogBean
     val eventLogBeanDS: DataStream[EventLogBean] = eventDS.flatMap(new EventJSONToBeanFlatMapFunction)
 
-    //eventLogBeanDS.print()
+    // 添加事件时间分配
+    val watermarkStrategy = WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofMillis(0))
+      .withTimestampAssigner(new SerializableTimestampAssigner[EventLogBean] {
+        override def extractTimestamp(element: EventLogBean, recordTimestamp: Long): Long = {
+          element.timeStamp
+        }
+      })
+
+    val eventTimeLogBeanDS = eventLogBeanDS.assignTimestampsAndWatermarks(watermarkStrategy)
+
+    //eventTimeLogBeanDS.print()
 
     //因为规则匹配是针对每个用户，kyBY后单独继续匹配的
-    val keyedDS: KeyedStream[EventLogBean, String] = eventLogBeanDS.keyBy(_.userId)
+    val keyedDS: KeyedStream[EventLogBean, String] = eventTimeLogBeanDS.keyBy(_.userId)
 
     val matchRuleDS = keyedDS.process(new RuleMatchKeyedProcessFunction)
 
