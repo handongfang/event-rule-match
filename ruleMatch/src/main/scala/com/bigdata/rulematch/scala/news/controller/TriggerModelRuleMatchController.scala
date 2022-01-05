@@ -1,7 +1,7 @@
 package com.bigdata.rulematch.scala.news.controller
 
 import com.bigdata.rulematch.scala.news.beans.EventLogBean
-import com.bigdata.rulematch.scala.news.beans.rule.MatchRule
+import com.bigdata.rulematch.scala.news.beans.rule.{EventCombinationCondition, MatchRule, TimerCondition}
 import com.bigdata.rulematch.scala.news.service.TriggerModeRuleMatchServiceImpl
 import com.bigdata.rulematch.scala.news.utils.EventUtil
 import org.apache.flink.api.common.state.ListState
@@ -67,6 +67,43 @@ class TriggerModelRuleMatchController {
 
     //最后返回是否满足所有规则条件
     isMatch
+  }
+
+  /**
+   * 检查定时条件是否满足
+   *
+   * @param keyByValue
+   * @param timerCondition
+   * @param queryStartTime
+   * @param queryEndTime
+   */
+  def isMatchTimeCondition(keyByValue: String, timerCondition: TimerCondition,
+                           queryStartTime: Long, queryEndTime: Long) = {
+
+    val eventCombinationConditionList = timerCondition.eventCombinationConditionList
+
+    var isMatch = true
+
+    if(eventCombinationConditionList != null && eventCombinationConditionList.size > 0){
+
+      val iterator = eventCombinationConditionList.iterator
+
+      while(iterator.hasNext && isMatch){
+        val eventCombinationCondition: EventCombinationCondition = iterator.next()
+
+        //matchEventCombinationCondition方法中只会用到userId,其他字段随便填
+        val eventLogBean = EventLogBean(keyByValue, "", queryEndTime, null)
+
+        eventCombinationCondition.timeRangeStart = queryStartTime
+        eventCombinationCondition.timeRangeEnd = queryEndTime
+
+        isMatch = triggerModeRuleMatchService.matchEventCombinationCondition(eventLogBean, eventCombinationCondition)
+      }
+
+    }
+
+    isMatch
+
   }
 
   /**

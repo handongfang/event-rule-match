@@ -1,6 +1,7 @@
 package com.bigdata.rulematch.scala.news.utils
 
 import com.bigdata.rulematch.scala.news.beans.EventLogBean
+import com.bigdata.rulematch.scala.news.beans.rule.MatchRule
 import org.apache.flink.api.common.state.{ListStateDescriptor, StateTtlConfig}
 import org.apache.flink.api.common.time.Time
 import org.apache.flink.streaming.api.scala.createTypeInformation
@@ -34,4 +35,8 @@ object StateDescUtils {
 
     eventBeanListState
   }
+
+  val ruleTimerStateDesc: ListStateDescriptor[(MatchRule, Long)] = new ListStateDescriptor[(MatchRule, Long)](
+    "rule_timer", createTypeInformation[(MatchRule, Long)]
+  )
 }

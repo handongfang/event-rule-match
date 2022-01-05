@@ -65,7 +65,7 @@ class TriggerModeRuleMatchServiceImpl {
     if(conditionStart >= boundPointTime){
       //                  |------|
       // --------------|--------------
-      logger.debug(s"事件Id : ${event.eventId}, 只查询state")
+      logger.debug(s"只查询state")
       // 查state状态
       val matchCount = stateQuerier.queryEventCombinationConditionCount("userId", event.userId, combinationCondition,
         conditionStart, conditionEnd)
@@ -75,7 +75,7 @@ class TriggerModeRuleMatchServiceImpl {
       }
 
     }else if(conditionEnd < boundPointTime){
-      logger.debug(s"事件Id : ${event.eventId}, 查询clickHouse")
+      logger.debug(s"查询clickHouse")
       //       |------|
       // --------------|--------------
       //查询clickhouse
@@ -87,7 +87,7 @@ class TriggerModeRuleMatchServiceImpl {
       }
 
     }else{
-      logger.debug(s"事件Id : ${event.eventId}, 跨区间查询")
+      logger.debug(s"跨区间查询")
       //       |-------------|
       // --------------|--------------
       //跨区间查询
@@ -98,12 +98,12 @@ class TriggerModeRuleMatchServiceImpl {
 
       if(stateMatchCount >= combinationCondition.minLimit && stateMatchCount <= combinationCondition.maxLimit){
         isMatch = true
-        logger.debug(s"事件Id : ${event.eventId}, 跨区间查询, state中已经满足条件, 规则匹配提前结束")
+        logger.debug(s"跨区间查询, state中已经满足条件, 规则匹配提前结束")
       }
 
       if(!isMatch){
         //如果只查state没有满足，再继续查询
-        logger.debug(s"事件Id : ${event.eventId}, 跨区间查询, 只查询state中不满足条件, 继续进行规则匹配")
+        logger.debug(s"跨区间查询, 只查询state中不满足条件, 继续进行规则匹配")
 
         //查询ck中满足条件的事件序列
         val ckEventSeqStr = clickHouseQuerier.getEventCombinationConditionStr("userId", event.userId, combinationCondition,

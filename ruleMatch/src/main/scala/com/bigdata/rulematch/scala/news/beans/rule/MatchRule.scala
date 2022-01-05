@@ -42,8 +42,7 @@ case class MatchRule(
                       var matchLimit: Int = 0,
 
                       /**
-                       * 是否要注册timer
+                       * 定时条件
                        */
-                      var onTimer: Boolean = false
-
+                      timerConditionList: List[TimerCondition] = List.empty[TimerCondition],
                     )
