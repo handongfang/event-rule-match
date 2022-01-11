@@ -43,7 +43,7 @@
         <commons-compress.version>1.20</commons-compress.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <clickhouse.version>0.3.1</clickhouse.version>
-        <lettuce.version>6.1.3.RELEASE</lettuce.version>
+        <lettuce.version>6.1.5.RELEASE</lettuce.version>
         <drools.version>7.56.0.Final</drools.version>
         <freemarker.version>2.3.31</freemarker.version>
         <elasticsearch.version>7.12.1</elasticsearch.version>
@@ -164,6 +164,11 @@
                 <groupId>ru.yandex.clickhouse</groupId>
                 <artifactId>clickhouse-jdbc</artifactId>
                 <version>${clickhouse.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.lettuce</groupId>
+                <artifactId>lettuce-core</artifactId>
+                <version>${lettuce.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
