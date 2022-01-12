@@ -6,6 +6,7 @@ import com.bigdata.rulematch.scala.news.beans.BufferData
 import com.bigdata.rulematch.scala.news.utils.ConnectionUtils
 import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.sync.RedisCommands
+import org.apache.commons.lang3.StringUtils
 import org.slf4j.{Logger, LoggerFactory}
 
 /**
@@ -31,20 +32,19 @@ class BufferManagerImpl extends BufferManager {
   }
 
   override def putDataToBuffer(bufferData: BufferData): Boolean = {
-    val addCount = redisCommands.hset(bufferData.getCacheKey(), bufferData.valueMap)
-    if (addCount > 0) true else false
+    //hset中传map需要redis服务端支持,如果服务端版本过低,这样写会报错
+    //val addCount = redisCommands.hset(bufferData.getCacheKey(), bufferData.valueMap)
+    val replyStr = redisCommands.hmset(bufferData.getCacheKey(), bufferData.valueMap)
+    if (StringUtils.equals("OK", replyStr)) true else false
   }
 
   override def putDataToBuffer(bufferKey: String, valueMap: Map[String, String]): Boolean = {
 
-    /**
-     * String hmset = jedis.hmset(bufferKey, valueMap);
-     *
-     * return "OK".equals(hmset)
-     */
     val javaValueMap = scala.collection.JavaConverters.mapAsJavaMap(valueMap)
-    val addCount = redisCommands.hset(bufferKey, javaValueMap)
-    if (addCount > 0) true else false
+    //hset中传map需要redis服务端支持,如果服务端版本过低,这样写会报错
+    //val addCount = redisCommands.hset(bufferKey, javaValueMap)
+    val replyStr = redisCommands.hset(bufferKey, javaValueMap)
+    if (StringUtils.equals("OK", replyStr)) true else false
   }
 
   override def delBufferEntry(bufferKey: String, key: String) = {
