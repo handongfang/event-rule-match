@@ -43,7 +43,7 @@ class BufferManagerImpl extends BufferManager {
     val javaValueMap = scala.collection.JavaConverters.mapAsJavaMap(valueMap)
     //hset中传map需要redis服务端支持,如果服务端版本过低,这样写会报错
     //val addCount = redisCommands.hset(bufferKey, javaValueMap)
-    val replyStr = redisCommands.hset(bufferKey, javaValueMap)
+    val replyStr = redisCommands.hmset(bufferKey, javaValueMap)
     if (StringUtils.equals("OK", replyStr)) true else false
   }
 
