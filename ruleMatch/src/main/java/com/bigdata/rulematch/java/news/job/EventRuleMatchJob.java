@@ -5,16 +5,21 @@ import com.bigdata.rulematch.java.news.beans.RuleMatchResult;
 import com.bigdata.rulematch.java.news.functions.EventJSONToBeanFlatMapFunction;
 import com.bigdata.rulematch.java.news.functions.RuleMatchKeyedProcessFunction;
 import com.bigdata.rulematch.java.news.source.KafkaSourceFactory;
+import org.apache.flink.api.common.eventtime.SerializableTimestampAssigner;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.metrics.MetricGroup;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.Duration;
 
 /**
  * 基于事件的静态规则匹配Java版本
@@ -23,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * @version 1.0
  * @date 2021-12-18 17:55
  */
-public class EventRuleMatch {
+public class EventRuleMatchJob {
     private Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
     private static String checkpointDataUri = "";
@@ -41,6 +46,7 @@ public class EventRuleMatch {
         }else {
             StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         }*/
+
         StreamExecutionEnvironment env = isLocal ? StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(new Configuration()) : StreamExecutionEnvironment.getExecutionEnvironment();
 
         //为了便于观察,把并行度设置为1
@@ -63,10 +69,16 @@ public class EventRuleMatch {
         //将JSON转换为 EventLogBean
         DataStream<EventLogBean> eventLogBeanDS = eventDS.flatMap(new EventJSONToBeanFlatMapFunction());
 
+        //添加水印事件时间分配
+        WatermarkStrategy<EventLogBean> watermarkStrategy = WatermarkStrategy.<EventLogBean>forBoundedOutOfOrderness(Duration.ofMillis(0))
+                .withTimestampAssigner((SerializableTimestampAssigner<EventLogBean>) (eventLogBean, l) -> eventLogBean.getTimeStamp());
+
+        DataStream<EventLogBean> eventTimeLogBeanDS = eventLogBeanDS.assignTimestampsAndWatermarks(watermarkStrategy);
+
         //eventLogBeanDS.print()
 
         //因为规则匹配是针对每个用户，kyBY后单独继续匹配的
-        KeyedStream<EventLogBean, String> keyedDS = eventLogBeanDS.keyBy(eventLogBean -> eventLogBean.getUserId());
+        KeyedStream<EventLogBean, String> keyedDS = eventTimeLogBeanDS.keyBy(eventLogBean -> eventLogBean.getUserId());
 
         keyedDS.process(new RuleMatchKeyedProcessFunction());
 

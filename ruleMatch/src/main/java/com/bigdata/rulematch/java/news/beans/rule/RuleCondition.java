@@ -2,8 +2,10 @@ package com.bigdata.rulematch.java.news.beans.rule;
 
 import com.bigdata.rulematch.java.news.beans.rule.EventCombinationCondition;
 import com.bigdata.rulematch.java.news.beans.rule.EventCondition;
+import com.bigdata.rulematch.java.news.beans.rule.TimerCondition;
 import org.apache.commons.math3.util.Pair;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,23 +18,22 @@ import java.util.Map;
 public class RuleCondition {
     /**
      * 初始化
-     *
      * @param ruleId
      * @param keyByFields
      * @param triggerEventCondition
      * @param userProfileConditions
      * @param eventCombinationConditionList
      * @param matchLimit
-     * @param onTimer
+     * @param timerConditionList
      */
-    public RuleCondition(String ruleId, String keyByFields, EventCondition triggerEventCondition, Map<String, Pair<String, String>> userProfileConditions, EventCombinationCondition[] eventCombinationConditionList, int matchLimit, boolean onTimer) {
+    public RuleCondition(String ruleId, String keyByFields, EventCondition triggerEventCondition, Map<String, Pair<String, String>> userProfileConditions, EventCombinationCondition[] eventCombinationConditionList, int matchLimit, List<TimerCondition> timerConditionList) {
         this.ruleId = ruleId;
         this.keyByFields = keyByFields;
         this.triggerEventCondition = triggerEventCondition;
         this.userProfileConditions = userProfileConditions;
         this.eventCombinationConditionList = eventCombinationConditionList;
         this.matchLimit = matchLimit;
-        this.onTimer = onTimer;
+        this.timerConditionList = timerConditionList;
     }
 
     /**
@@ -77,9 +78,9 @@ public class RuleCondition {
      */
     private int matchLimit = 0;
     /**
-     * 是否要注册timer
+     * 定时组合条件
      */
-    private boolean onTimer = false;
+    private List<TimerCondition> timerConditionList = null;
 
 
     public String getRuleId() {
@@ -130,11 +131,11 @@ public class RuleCondition {
         this.matchLimit = matchLimit;
     }
 
-    public boolean isOnTimer() {
-        return onTimer;
+    public List<TimerCondition> getTimerConditionList() {
+        return timerConditionList;
     }
 
-    public void setOnTimer(boolean onTimer) {
-        this.onTimer = onTimer;
+    public void setTimerConditionList(List<TimerCondition> timerConditionList) {
+        this.timerConditionList = timerConditionList;
     }
 }

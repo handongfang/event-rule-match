@@ -4,6 +4,7 @@ import com.bigdata.rulematch.java.news.beans.EventLogBean;
 import com.bigdata.rulematch.java.news.beans.rule.EventCombinationCondition;
 import com.bigdata.rulematch.java.news.beans.rule.EventCondition;
 import com.bigdata.rulematch.java.news.beans.rule.RuleCondition;
+import com.bigdata.rulematch.java.news.beans.rule.TimerCondition;
 import com.bigdata.rulematch.java.news.service.TriggerModeRuleMatchServiceImpl;
 import com.bigdata.rulematch.java.news.utils.EventCompareUtils;
 import org.apache.commons.math3.util.Pair;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -80,6 +82,41 @@ public class TriggerModelRuleMatchController {
 
         } else {
             logger.debug("不满足触发条件，不再继续判断 EventLogBean:{}", event);
+        }
+
+        return isMatch;
+    }
+
+    /**
+     * 检查定时条件是否满足
+     *
+     * @param keyByValue
+     * @param timerCondition
+     * @param queryStartTime
+     * @param queryEndTime
+     * @return
+     */
+    public boolean isMatchTimeCondition(String keyByValue, TimerCondition timerCondition, Long queryStartTime, Long queryEndTime) throws Exception {
+        boolean isMatch = true;
+
+        List<EventCombinationCondition> eventCombinationConditionList = timerCondition.getEventCombinationConditionList();
+        if (eventCombinationConditionList != null && eventCombinationConditionList.size() > 0) {
+            /**
+             * 当存在被定时检查的组合条件时需要进行查询匹配！！！
+             * 例如当前规则的某些条件是定时条件（浏览A页面,10分钟内又添加B商品进购物车并下单B商品）
+             * 就需要等待触发定时器,进而开始匹配查询这些定时后的组合条件是否现在满足了
+             */
+            Iterator<EventCombinationCondition> iterator = eventCombinationConditionList.iterator();
+            while (iterator.hasNext() && isMatch) {
+                EventCombinationCondition eventCombinationCondition = iterator.next();
+                EventLogBean eventLogBean = new EventLogBean(keyByValue, "", queryEndTime, null);
+
+                eventCombinationCondition.setTimeRangeStart(queryStartTime);
+                eventCombinationCondition.setTimeRangeEnd(queryEndTime);
+
+                isMatch = triggerModeRuleMatchService.matchEventCombinationCondition("userId", eventLogBean, eventCombinationCondition);
+
+            }
         }
 
         return isMatch;

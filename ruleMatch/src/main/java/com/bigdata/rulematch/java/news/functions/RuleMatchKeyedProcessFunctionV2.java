@@ -4,16 +4,16 @@ import com.bigdata.rulematch.java.news.beans.EventLogBean;
 import com.bigdata.rulematch.java.news.beans.RuleMatchResult;
 import com.bigdata.rulematch.java.news.beans.rule.RuleCondition;
 import com.bigdata.rulematch.java.news.beans.rule.RuleTimer;
+import com.bigdata.rulematch.java.news.beans.rule.RuleTimerV2;
 import com.bigdata.rulematch.java.news.beans.rule.TimerCondition;
-import com.bigdata.rulematch.java.news.utils.StateDescUtils;
+import com.bigdata.rulematch.java.news.conf.EventRuleConstant;
 import com.bigdata.rulematch.java.news.controller.TriggerModelRuleMatchController;
 import com.bigdata.rulematch.java.news.datagen.RuleConditionEmulator;
-import com.bigdata.rulematch.java.news.conf.EventRuleConstant;
+import com.bigdata.rulematch.java.news.utils.StateDescUtils;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.math3.util.Pair;
 import org.apache.flink.api.common.state.ListState;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
@@ -31,12 +31,12 @@ import java.util.List;
  * @version 1.0
  * @create 2022-01-04  17:59
  */
-public class RuleMatchKeyedProcessFunction extends KeyedProcessFunction<String, EventLogBean, RuleMatchResult> {
+public class RuleMatchKeyedProcessFunctionV2 extends KeyedProcessFunction<String, EventLogBean, RuleMatchResult> {
     private Logger logger = LoggerFactory.getLogger(this.getClass().getName());
     //
     private PropertiesConfiguration config = EventRuleConstant.config;
     //规则触发定时器
-    private ListState<RuleTimer> timerInfoState = null;
+    private ListState<RuleTimerV2> timerInfoState = null;
     //flink stage 事件列表
     private ListState<EventLogBean> eventListState = null;
     //条件匹配控制器
@@ -47,7 +47,7 @@ public class RuleMatchKeyedProcessFunction extends KeyedProcessFunction<String, 
     @Override
     public void open(Configuration parameters) throws Exception {
         //规则定时触发器状态
-        timerInfoState = super.getRuntimeContext().getListState(StateDescUtils.ruleTimerStateDesc);
+        timerInfoState = super.getRuntimeContext().getListState(StateDescUtils.ruleTimerStateDescV2);
         //初始化用于存放2小时内事件明细的状态
         eventListState = super.getRuntimeContext().getListState(StateDescUtils.getEventBeanStateDesc());
         //初始化规则匹配控制器
@@ -78,17 +78,24 @@ public class RuleMatchKeyedProcessFunction extends KeyedProcessFunction<String, 
                 if (timerConditionList != null && timerConditionList.size() > 0) {
                     logger.info("开始注册规则中组合条件: {}的定时器", timerConditionList);
 
-                    //注册定时器
-                    //目前限定一个规则中只有一个时间组合条件
-                    TimerCondition timerCondition = timerConditionList.get(0);
+                    List<TimerCondition> TList = new ArrayList<TimerCondition>();
 
-                    Long triggerTime = eventLogBean.getTimeStamp() + timerCondition.getTimeLate();
+                    //注册N个组合条件定时器,合成一个规则定时器,删除规则定时器状态时先要判断内部组合条件定时器是否为空
+                    //多个延迟时间组合条件
+                    for (TimerCondition timerCondition : timerConditionList) {
+                        //单个组合条件触发时间
+                        Long triggerTime = eventLogBean.getTimeStamp() + timerCondition.getTimeLate();
 
-                    context.timerService().registerEventTimeTimer(triggerTime);
+                        TimerCondition T = new TimerCondition(timerCondition.getTimeLate(), timerCondition.getEventCombinationConditionList(), triggerTime);
+
+                        context.timerService().registerEventTimeTimer(triggerTime);
+
+                        TList.add(T);
+                    }
 
                     // 在规则定时信息state中进行记录
                     // 不同的规则，比如rule1和rule2都注册了一个10点的定时器,定时器触发的时候,需要知道应该检查哪个规则
-                    timerInfoState.add(new RuleTimer(ruleCondition, triggerTime));
+                    timerInfoState.add(new RuleTimerV2(ruleCondition, TList));
 
                 } else {
                     logger.info("所有规则匹配完毕,准备输出匹配结果信息...");
@@ -104,42 +111,68 @@ public class RuleMatchKeyedProcessFunction extends KeyedProcessFunction<String, 
 
     @Override
     public void onTimer(long timestamp, OnTimerContext ctx, Collector<RuleMatchResult> out) throws Exception {
-        Iterator<RuleTimer> ruleTimerIterator = timerInfoState.get().iterator();
+        Iterator<RuleTimerV2> ruleTimerIterator = timerInfoState.get().iterator();
         //用于更新规则定时器状态
-        List<RuleTimer> timerInfoStateBak = new ArrayList<RuleTimer>();
+        List<RuleTimerV2> timerInfoStateBak = new ArrayList<RuleTimerV2>();
         //获取所有规则定时器状态
         while (ruleTimerIterator.hasNext()) {
-            RuleTimer ruleTimer = ruleTimerIterator.next();
-            Pair<RuleCondition, Long> ruleConditionLongPair = ruleTimer.getrRleTimerStage();
-            RuleCondition ruleCondition = ruleConditionLongPair.getKey();
-            Long triggerTime = ruleConditionLongPair.getValue();
+            RuleTimerV2 ruleTimerV2 = ruleTimerIterator.next();
+            Pair<RuleCondition, List<TimerCondition>> ruleConditionListPair = ruleTimerV2.getrRleTimerStage();
+            RuleCondition ruleCondition = ruleConditionListPair.getKey();
+            //组合条件定时列表
+            List<TimerCondition> TList = ruleConditionListPair.getValue();
 
-            if (triggerTime == timestamp) {
-                //说明是本次需要判断的定时条件，否则什么都不做
-                List<TimerCondition> timerConditionList = ruleCondition.getTimerConditionList();
+            boolean isMatch = true;
+            //遍历该规则中所有组合条件定时器状态
+            /*Iterator<TimerCondition> iterator = TList.iterator();
+            while (iterator.hasNext() && isMatch) {
+                TimerCondition timerCondition = iterator.next();
+                Long triggerTime = timerCondition.getTimeLate();
 
-                //因为目前只支持一个定时条件,所以直接取第0个
-                TimerCondition timerCondition = timerConditionList.get(0);
-
-                boolean isMatch = triggerModelRuleMatchController.isMatchTimeCondition(ctx.getCurrentKey(), timerCondition,
-                        timestamp - timerCondition.getTimeLate(), timestamp);
-
-                // 清除已经检查完毕的规则定时点state信息
-                ruleTimerIterator.remove();
-
-                if (isMatch) {
-                    //创建规则匹配结果对象
-                    RuleMatchResult matchResult = new RuleMatchResult(ctx.getCurrentKey(), ruleCondition.getRuleId(), timestamp, System.currentTimeMillis());
-
-                    //将匹配结果输出
-                    out.collect(matchResult);
+                if (triggerTime == timestamp) {
+                    isMatch = triggerModelRuleMatchController.isMatchTimeCondition(ctx.getCurrentKey(), timerCondition,
+                            timestamp - timerCondition.getTimeLate(), timestamp);
+                    //当前组合条件定时器处理完成要移除
+                    TList.remove(timerCondition);
+                } else if (triggerTime < timestamp) {
+                    // 增加删除过期定时信息的逻辑 - 双保险（一般情况下不会出现触发时间小于当前的记录）
+                    TList.remove(timerCondition);
                 }
-            } else if (triggerTime < timestamp) {
-                // 增加删除过期定时信息的逻辑 - 双保险（一般情况下不会出现触发时间小于当前的记录）
+            }*/
+            //以上方案TList移除太慢(每次都需要迭代判断相等移除)
+            for (int i = 0; i < TList.size(); i++) {
+                TimerCondition timerCondition = TList.get(i);
+                Long triggerTime = timerCondition.getTimeLate();
+
+                if (triggerTime == timestamp) {
+                    isMatch = triggerModelRuleMatchController.isMatchTimeCondition(ctx.getCurrentKey(), timerCondition,
+                            timestamp - timerCondition.getTimeLate(), timestamp);
+                    //提前跳出匹配
+                    if (!isMatch) break;
+                    //当前组合条件定时器处理完成要移除
+                    TList.remove(i);
+                } else if (triggerTime < timestamp) {
+                    // 增加删除过期定时信息的逻辑 - 双保险（一般情况下不会出现触发时间小于当前的记录）
+                    TList.remove(i);
+                }
+            }
+
+            //只有当该规则所有组合定时器都触发完成才算满足该规则
+            if (isMatch && (TList == null || TList.size() == 0)) {
+                //创建规则匹配结果对象
+                RuleMatchResult matchResult = new RuleMatchResult(ctx.getCurrentKey(), ruleCondition.getRuleId(), timestamp, System.currentTimeMillis());
+
+                //将匹配结果输出
+                out.collect(matchResult);
+            }
+
+            //当前规则定时组合条件为空或有定时组合条件未满足,清空该规则定时状态
+            if (!isMatch || (TList == null || TList.size() == 0)) {
                 ruleTimerIterator.remove();
             } else {
                 //保留该规则定时器
-                timerInfoStateBak.add(ruleTimer);
+                RuleTimerV2 ruleTimerV2Bak = new RuleTimerV2(ruleCondition, TList);
+                timerInfoStateBak.add(ruleTimerV2Bak);
             }
         }
         timerInfoState.update(timerInfoStateBak);

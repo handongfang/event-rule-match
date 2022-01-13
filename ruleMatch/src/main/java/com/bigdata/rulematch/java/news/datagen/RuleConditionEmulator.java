@@ -83,7 +83,7 @@ public class RuleConditionEmulator {
         actionCountCondition1Map.put("productId", "A");
         //生成加入购物车次数事件条件
         EventCondition actionCountCondition1 = new EventCondition(EventRuleConstant.EVENT_ADD_CART,
-                actionCountCondition1Map, actionCountConditionStartTime, actionCountConditionEndTime, 3, Integer.MAX_VALUE);
+                actionCountCondition1Map, actionCountConditionStartTime, actionCountConditionEndTime, 1, Integer.MAX_VALUE);
 
         //单个事件次数条件列表
         EventCondition[] eventConditionList1 = new EventCondition[]{actionCountCondition1};
@@ -111,7 +111,7 @@ public class RuleConditionEmulator {
         actionCountCondition2Map.put("productId", "A");
         //生成收藏次数事件条件
         EventCondition actionCountCondition2 = new EventCondition(EventRuleConstant.EVENT_COLLECT,
-                actionCountCondition2Map, actionCountConditionStartTime, actionCountConditionEndTime, 5, Integer.MAX_VALUE);
+                actionCountCondition2Map, actionCountConditionStartTime, actionCountConditionEndTime, 1, Integer.MAX_VALUE);
 
         //单个事件次数条件列表
         EventCondition[] eventConditionList2 = new EventCondition[]{actionCountCondition2};
