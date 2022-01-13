@@ -3,6 +3,7 @@ package com.bigdata.rulematch.scala.news.dao
 import java.sql.{Connection, PreparedStatement, ResultSet}
 
 import com.bigdata.rulematch.scala.news.beans.rule.EventCombinationCondition
+import com.bigdata.rulematch.scala.news.buffer.{BufferManager, BufferManagerImpl}
 import com.bigdata.rulematch.scala.news.utils.EventUtil
 import org.apache.commons.dbutils.DbUtils
 import org.slf4j.{Logger, LoggerFactory}
@@ -14,10 +15,12 @@ class ClickHouseQuerier {
   private val logger: Logger = LoggerFactory.getLogger(this.getClass.getName.stripSuffix("$"))
 
   private var ckConn: Connection = null
+  private var bufferManager: BufferManager = null
 
   def this(ckConn: Connection) = {
     this()
     this.ckConn = ckConn
+    this.bufferManager = new BufferManagerImpl
   }
 
   /**
@@ -97,5 +100,6 @@ class ClickHouseQuerier {
    */
   def closeConnection() = {
     DbUtils.close(ckConn)
+    bufferManager.close()
   }
 }

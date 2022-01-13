@@ -24,6 +24,11 @@ object EventRuleConstant {
   val CLICKHOUSE_DRIVER_NAME = "ru.yandex.clickhouse.ClickHouseDriver"
   val CLICKHOUSE_URL = "jdbc:clickhouse://82.156.210.70:8123/default"
 
+  //redis相关配置
+  val REDIS_HOST = "192.168.1.250"
+  val REDIS_PORT = 6379
+  val REDIS_PASSWORD = "SoboT321"
+
   //HBase相关的配置
   //hbase中用户画像表名称
   val HBASE_USER_PROFILE_TABLE_NAME = "user-profile"
