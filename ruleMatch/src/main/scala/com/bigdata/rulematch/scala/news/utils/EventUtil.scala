@@ -9,7 +9,7 @@ import org.apache.commons.lang3.StringUtils
 object EventUtil {
 
   /**
-   * 在传入的事件序列中匹配给定的模式，并返回匹配的次数
+   * 在传入的事件序列(1223)中匹配给定的模式(1.*2.*3)，并返回匹配的次数
    * @param eventStr
    * @param matchPattern
    */

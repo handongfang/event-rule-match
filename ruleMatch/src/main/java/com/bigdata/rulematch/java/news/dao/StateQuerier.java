@@ -42,11 +42,11 @@ public class StateQuerier {
 
         StringBuilder stringBuilder = new StringBuilder();
 
-        //开始遍历状态事件日志
+        //开始遍历状态事件日志(用于返回日志匹配的条件下标->1223)
         for (EventLogBean eventLogBean : eventLogBeans) {
             //判断遍历到的时间时间是否落在规则中要求的时间范围内
             if (eventLogBean.getTimeStamp() > queryRangeStart && eventLogBean.getTimeStamp() < queryRangeEnd) {
-                //从组合条件列表中查询该事件是否存在
+                //从组合条件列表中查询该事件是否存在匹配
                 for (int index = 0; index < eventConditionList.length; index++) {
                     //如果事件匹配,记录匹配下标
                     if (EventCompareUtils.eventMatchCondition(eventLogBean, eventConditionList[index])) {

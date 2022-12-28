@@ -53,6 +53,7 @@ public class ClickHouseQuerier {
 
         ArrayList<String> eventIdList = new ArrayList<String>();
 
+        //组合条件中事件ID列表(有顺序的)
         for (EventCondition eventCondition : eventConditionList) {
             eventIdList.add(eventCondition.getEventId());
         }
@@ -69,6 +70,7 @@ public class ClickHouseQuerier {
         pstmt.setLong(2, queryRangeStart);
         pstmt.setLong(3, queryRangeEnd);
 
+        //会将所有满足单条件的日志返回且按时间排序好了
         ResultSet result = pstmt.executeQuery();
 
         StringBuilder eventIndexSeqBuilder = new StringBuilder();
@@ -78,7 +80,7 @@ public class ClickHouseQuerier {
             String eventId = result.getString(1);
             // 因为查询的eventId,是依照组合条件中事件提前构建好的,故直接用事件列表索引。
             // 根据eventId到组合条件的事件列表中找对应的索引号,来作为最终结果拼接
-            // 如果是原始的事件名称,比如add_cart, order_pay,进行正则匹配的时候比较麻烦, 所以先转换成 1212 这种形式
+            // 如果是原始的事件名称,比如add_cart, order_pay,进行正则匹配的时候比较麻烦, 所以先转换成 (日志匹配的事件ID下标->1223) 这种形式
             eventIndexSeqBuilder.append(eventIdList.indexOf(eventId) + 1);
         }
 

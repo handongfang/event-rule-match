@@ -110,11 +110,11 @@ public class TriggerModeRuleMatchServiceImpl {
                 //如果只查state没有满足，再继续查询
                 logger.debug("事件Id : {}, 跨区间查询, 只查询state中不满足条件, 继续进行规则匹配", event.getEventId());
 
-                //查询ck中满足条件的事件序列
+                //查询ck中满足条件的事件序列->1223
                 String ckEventSeqStr = clickHouseQuerier.getEventCombinationConditionStr(keyByField, event.getEventId(), combinationCondition,
                         conditionStart, boundPointTime);
 
-                //查询state中的事件序列
+                //查询state中的事件序列->1223
                 String stateEventSeqStr = stateQuerier.getEventCombinationConditionStr(keyByField, event.getEventId(), combinationCondition,
                         boundPointTime, conditionEnd);
 
