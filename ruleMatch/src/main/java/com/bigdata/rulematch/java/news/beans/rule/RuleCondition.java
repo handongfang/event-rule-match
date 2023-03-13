@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 规则条件的封装对象,需要匹配的规则都封装在这个对象中
+ * 规则条件的封装对象,需要匹配的条件都封装在这个对象中
  *
  * @author HanDongfang
  * @version 1.0

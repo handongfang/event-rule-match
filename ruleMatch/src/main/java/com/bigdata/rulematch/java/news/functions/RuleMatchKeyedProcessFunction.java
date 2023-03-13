@@ -91,7 +91,7 @@ public class RuleMatchKeyedProcessFunction extends KeyedProcessFunction<String, 
                     timerInfoState.add(new RuleTimer(ruleCondition, triggerTime));
 
                 } else {
-                    logger.info("所有规则匹配完毕,准备输出匹配结果信息...");
+                    logger.info("所有定时条件匹配完毕,准备输出匹配结果信息...");
                     //创建规则匹配结果对象
                     RuleMatchResult matchResult = new RuleMatchResult(context.getCurrentKey(), ruleCondition.getRuleId(), eventLogBean.getTimeStamp(), System.currentTimeMillis());
                     //将匹配结果输出
